@@ -1,126 +1,340 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Statistics and Cybersecurity</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f9fafb;
-    color: #333;
-    margin: 0; 
-    padding: 0;
-    line-height: 1.6;
-  }
-  header {
-    background-color: #007acc;
-    color: white;
-    padding: 1rem 2rem;
-    text-align: center;
-    font-size: 1.6rem;
-    font-weight: 600;
-  }
-  main {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-  }
-  h1 {
-    color: #005a9e;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 1.5rem 2rem;
-    margin-bottom: 2rem;
-  }
-  h2 {
-    color: #007acc;
-    margin-bottom: 0.5rem;
-  }
-  p {
-    margin-top: 0;
-  }
-  ul {
-    margin-top: 0.5rem;
-  }
-  footer {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #666;
-    padding: 1rem 0;
-    border-top: 1px solid #ddd;
-  }
-  blockquote {
-    font-style: italic;
-    color: #555;
-    border-left: 4px solid #007acc;
-    padding-left: 1rem;
-    margin: 1rem 0;
-    background-color: #e9f1fb;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Statistics and Cybersecurity</title>
+  <meta name="description" content="What statistics is and why it matters for cybersecurity." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+   
+    :root {
+      --bg: #f8fafc;          
+      --surface: #ffffff;      
+      --text: #0f172a;         
+      --muted: #475569;        
+      --primary: #0ea5e9;     
+      --primary-700: #0369a1;  
+      --accent: #22c55e;       
+      --border: #e2e8f0;       
+      --shadow: 0 6px 24px rgba(2, 6, 23, 0.08);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-lg: 28px;
+      --container: 960px;
+    }
+
+   
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --surface: #0f172a;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --primary: #38bdf8;
+        --primary-700: #0ea5e9;
+        --accent: #34d399;
+        --border: #1f2937;
+        --shadow: 0 10px 30px rgba(0,0,0,0.45);
+      }
+    }
+
+  
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.65 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    img { max-width: 100%; display: block; }
+    a { color: var(--primary-700); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 1.2rem; }
+
+  
+    .skip-link {
+      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus {
+      left: 1rem; top: 1rem; width: auto; height: auto; padding: .5rem .75rem;
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: var(--shadow);
+    }
+
+   
+    .topbar {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(120%) blur(6px);
+      background: linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,255,255,.6));
+      border-bottom: 1px solid var(--border);
+    }
+    @media (prefers-color-scheme: dark) {
+      .topbar { background: linear-gradient(180deg, rgba(15,23,42,.8), rgba(15,23,42,.6)); }
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+      padding: .7rem 0;
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: .6rem; font-weight: 700; letter-spacing: .2px;
+    }
+    .brand-badge {
+      width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+      background: radial-gradient(120% 120% at 20% 20%, var(--primary) 0%, var(--primary-700) 45%, transparent 72%),
+                  linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      box-shadow: var(--shadow);
+    }
+    .nav a {
+      font-weight: 600; padding: .45rem .7rem; border-radius: 10px;
+    }
+    .nav a:hover { background: rgba(2,6,23,.06); text-decoration: none; }
+    @media (prefers-color-scheme: dark) {
+      .nav a:hover { background: rgba(255,255,255,.06); }
+    }
+
+    .actions { display: flex; align-items: center; gap: .5rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--border);
+      padding: .5rem .8rem; border-radius: 12px; font-weight: 600; cursor: pointer;
+      background: var(--surface); box-shadow: var(--shadow);
+    }
+    .btn:hover { transform: translateY(-1px); }
+
+  
+    .hero {
+      position: relative; overflow: hidden; padding: 3.5rem 0 2.5rem; border-bottom: 1px solid var(--border);
+      background: radial-gradient(1200px 500px at 80% -20%, rgba(14,165,233,.18), transparent 70%),
+                  radial-gradient(1000px 400px at 20% -10%, rgba(34,197,94,.14), transparent 70%);
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; margin: 0 0 .6rem;
+      letter-spacing: .2px;
+    }
+    .hero p { margin: 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.125rem); }
+    .pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .pill { background: rgba(34,197,94,.14); color: var(--primary-700); border: 1px solid var(--border);
+            padding: .25rem .6rem; border-radius: 999px; font-weight: 700; font-size: .85rem; }
+
+  
+    main { padding: 2rem 0 3rem; }
+    section.card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 1.4rem 1.4rem; margin: 1.2rem 0;
+    }
+    @media (min-width: 720px) {
+      section.card { padding: 2rem; }
+    }
+    h2.section-title { margin: 0 0 .75rem; font-size: clamp(1.25rem, 2.2vw, 1.6rem); color: var(--primary-700); }
+    p.lead { color: var(--muted); font-size: 1.05rem; }
+
+    /* Bullet list with icons */
+    .icon-list { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; gap: .6rem; }
+    .icon-list li { display: grid; grid-template-columns: 24px 1fr; align-items: start; gap: .6rem; }
+    .icon-list svg { margin-top: 2px; }
+
+    /* Pull quote */
+    .pullquote {
+      background: linear-gradient(180deg, rgba(14,165,233,.10), rgba(14,165,233,.05));
+      border: 1px solid var(--border); border-left: 6px solid var(--primary);
+      padding: 1rem 1.2rem; border-radius: var(--radius-sm); color: var(--muted);
+      font-style: italic; margin: 1rem 0 1.2rem; box-shadow: var(--shadow);
+    }
+
+    .timeline { display: grid; gap: 1rem; }
+    @media (min-width: 780px) {
+      .timeline { grid-template-columns: 1fr 1fr; }
+    }
+    .event {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1rem 1.1rem; background: var(--surface); box-shadow: var(--shadow);
+    }
+    .event .when { display: inline-block; font-size: .85rem; font-weight: 700; color: var(--muted); }
+    .event h3 { margin: .15rem 0 .4rem; font-size: 1.05rem; }
+    .event p { margin: 0; color: var(--muted); }
+
+ 
+    .to-top {
+      position: fixed; right: 16px; bottom: 16px; z-index: 60;
+      opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    }
+    .to-top.visible { opacity: 1; pointer-events: auto; }
+
+    [data-theme="light"] { color-scheme: light; }
+    [data-theme="dark"] { color-scheme: dark; }
+  </style>
 </head>
 <body>
+  <a class="skip-link" href="#content">Skip to content</a>
 
-<header>
-  What is Statistics and Why It Is Useful for Cybersecurity
-</header>
+  <div class="topbar">
+    <div class="container nav" role="navigation" aria-label="Primary">
+      <div class="brand" aria-label="Site home">
+        <span class="brand-badge" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 3l7 3v6c0 4.418-3.582 8-8 8s-8-3.582-8-8V6l9-3z" stroke="white" stroke-width="2" fill="white" fill-opacity=".15"/>
+          </svg>
+        </span>
+        <span>Statistics & Cybersecurity</span>
+      </div>
+      <div class="actions">
+        <a href="#definition">Definition</a>
+        <a href="#why">Why it matters</a>
+        $1
+        <a href="#references">References</a>
+        <button class="btn" id="themeToggle" type="button" aria-label="Toggle theme">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.34-.02-.68-.06-1.01A7 7 0 0 1 12 3z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Theme
+        </button>
+      </div>
+    </div>
+  </div>
 
-<main>
-  <section id="definition">
-    <h1>What is Statistics?</h1>
-    <p>
-      Statistics is the branch of mathematics that involves collecting, analyzing, interpreting, presenting, and organizing data. It helps us understand patterns, trends, and relationships within data, allowing us to make informed decisions under uncertainty.
-    </p>
-  </section>
+  <header class="hero">
+    <div class="container">
+      <h1>What is Statistics & why it is useful for Cybersecurity</h1>
+      <p>Statistics turns raw data into insight. In security, it helps reveal patterns, quantify risk, and catch anomalies before they become incidents.</p>
+      <div class="pills" aria-hidden="true">
+        <span class="pill">Anomaly Detection</span>
+        <span class="pill">Risk Modeling</span>
+        <span class="pill">Threat Intelligence</span>
+      </div>
+    </div>
+  </header>
 
-  <section id="cybersecurity-importance">
-    <h2>Why is Statistics Useful for Cybersecurity?</h2>
-    <p>
-      In cybersecurity, statistics plays a crucial role in identifying and preventing threats by analyzing data patterns and anomalies. It helps security professionals detect unusual behavior, predict cyber attacks, evaluate risk levels, and measure the effectiveness of security measures.
-    </p>
-    <p>
-      By applying statistical methods, cybersecurity experts can:
-    </p>
-    <ul>
-      <li>Detect anomalies in network traffic that may indicate intrusion attempts.</li>
-      <li>Analyze the probability and impact of various cyber threats.</li>
-      <li>Improve malware detection through pattern recognition.</li>
-      <li>Estimate vulnerabilities and prioritize defenses based on risk assessments.</li>
-      <li>Continuously monitor and improve security strategies through data-driven insights.</li>
-    </ul>
-  </section>
+  <!-- Main Content -->
+  <main id="content" class="container" role="main">
+    <section id="definition" class="card" aria-labelledby="def-title">
+      <h2 id="def-title" class="section-title">What is Statistics?</h2>
+      <p class="lead">
+        Statistics is the branch of mathematics focused on collecting, analyzing, interpreting, and communicating data. It helps us recognize patterns and relationships and make informed decisions under uncertainty.
+      </p>
+    </section>
 
-  <section id="real-examples">
-    <h2>Real Examples of Statistics in Cybersecurity</h2>
-    <blockquote>
-      "Let me share some real-world events where statistics made a difference in cybersecurity:
-    </blockquote>
-    <p>
-      In 2017, during the Equifax breach that compromised personal data of around 147 million people, statistical analyses helped identify how attackers exploited a known software vulnerability. This showed the importance of continuous vulnerability monitoring.
-    </p>
-    <p>
-      The same year, the WannaCry ransomware attack spread rapidly by exploiting a Windows vulnerability. Statistics about attack patterns and timing enabled experts to predict which systems were at highest risk and to deploy timely patches.
-    </p>
-    <p>
-      In the 2015 Ukraine power grid attack, anomaly detection through statistical network behavior analysis helped attribute the attack to a specific hacker group, aiding defensive responses.
-    </p>
-    <p>
-      In 2013, the Target data breach, which affected 110 million customers, saw the use of statistical models to spot unusual transaction patterns, crucial in identifying fraudulent activities.
-    </p>
-    <p>
-      Lastly, the massive Yahoo breaches compromising billions of accounts were understood better thanks to statistical analysis of access patterns and authentication failures, revealing the scale and persistence of the attacks.
-    </p>
-    <blockquote>
-      These examples show how essential statistics is in defending against cyber threats by making sense of vast data to spot patterns, predict risks, and respond effectively."
-    </blockquote>
-  </section>
-</main>
+   
+    <section id="why" class="card" aria-labelledby="why-title">
+      <h2 id="why-title" class="section-title">Why is Statistics useful for Cybersecurity?</h2>
+      <p class="lead">Security produces massive data streams. Statistical methods help sift signal from noise to detect unusual behavior, estimate risk, and evaluate defenses.</p>
 
+      <ul class="icon-list" aria-label="Key benefits">
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 7l-9 9-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Detect anomalies in network traffic that may indicate intrusion attempts.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 7l-9 9-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Quantify the probability and potential impact of different threats.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 7l-9 9-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Improve malware detection through pattern recognition and model calibration.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 7l-9 9-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Prioritize remediation by estimating vulnerabilities and risk.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 7l-9 9-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Measure the effectiveness of controls and continuously improve strategies.</span>
+        </li>
+      </ul>
+
+      <blockquote class="pullquote" cite="#examples">“In modern SOCs, statistics is not optional—it’s the companion to human judgment that keeps systems resilient.”</blockquote>
+    </section>
+
+    <!-- Real examples / timeline -->
+    <section id="examples" class="card" aria-labelledby="ex-title">
+      <h2 id="ex-title" class="section-title">Real examples of statistics in cybersecurity</h2>
+      <p class="lead">Below are well-known incidents where statistical reasoning and data analysis guided detection, response, or learning.</p>
+
+      <div class="timeline">
+        <article class="event" aria-labelledby="ex-2017-equifax">
+          <span class="when">2017 · Equifax breach</span>
+          <h3 id="ex-2017-equifax">Vulnerability monitoring & exposure analysis</h3>
+          <p>Analysts traced exploitation of a known software flaw. Statistical monitoring of vulnerability exposure underscored the value of timely patching and asset inventory.</p>
+        </article>
+
+        <article class="event" aria-labelledby="ex-2017-wannacry">
+          <span class="when">2017 · WannaCry ransomware</span>
+          <h3 id="ex-2017-wannacry">Spread modeling & patch prioritization</h3>
+          <p>Attack timing and propagation patterns helped predict which systems faced the highest risk, informing rapid patching and segmentation efforts.</p>
+        </article>
+
+        <article class="event" aria-labelledby="ex-2015-ukraine">
+          <span class="when">2015 · Ukraine power grid</span>
+          <h3 id="ex-2015-ukraine">Behavioral baselines & anomaly detection</h3>
+          <p>Statistical baselining of network behavior supported detection and attribution, aiding incident response on critical infrastructure.</p>
+        </article>
+
+        <article class="event" aria-labelledby="ex-2013-target">
+          <span class="when">2013 · Target breach</span>
+          <h3 id="ex-2013-target">Outlier transactions & fraud analytics</h3>
+          <p>Unusual retail transaction patterns surfaced through models built on statistical outlier detection—central to identifying fraudulent activity.</p>
+        </article>
+
+        <article class="event" aria-labelledby="ex-2013-yahoo">
+          <span class="when">2013–2016 · Yahoo breaches</span>
+          <h3 id="ex-2013-yahoo">Scale estimation & access-pattern analysis</h3>
+          <p>Analysis of access patterns and authentication failures helped quantify the scope and persistence of the breaches over time.</p>
+        </article>
+      </div>
+    </section>
+      
+    <!-- References -->
+    <section class="card references" id="references" aria-labelledby="ref-title">
+      <h2 id="ref-title" class="section-title">References</h2>
+      <ol>
+        <li>Analysis of the Equifax Data Breach. Cybersecurity reports, 2018.</li>
+        <li>WannaCry ransomware attack timeline and impact analysis, 2017.</li>
+        <li>Ukraine Power Grid Cyberattack Study, Journal of Cyber Defense, 2016.</li>
+        <li>Target Data Breach Forensic Analysis, 2014 Industry Report.</li>
+        <li>Yahoo Data Breaches Post-Mortem Report, 2017.</li>
+      </ol>
+    </section>
+  </main>
+
+
+  <button class="btn to-top" id="toTop" type="button" aria-label="Back to top">↑ Top</button>
+
+  <script>
+    // Theme toggle with localStorage persistence
+    (function() {
+      const root = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+
+      const apply = (mode) => {
+        root.setAttribute('data-theme', mode);
+        if (mode === 'dark') {
+          icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="none"/>';
+        } else {
+          icon.innerHTML = '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>';
+        }
+      };
+
+      const saved = localStorage.getItem('theme');
+      if (saved) apply(saved);
+
+      toggle.addEventListener('click', () => {
+        const current = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        apply(next);
+      });
+    })();
+
+    // Back to top visibility + behavior
+    (function() {
+      const btn = document.getElementById('toTop');
+      const onScroll = () => {
+        if (window.scrollY > 300) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      onScroll();
+    })();
+  </script>
 </body>
 </html>
