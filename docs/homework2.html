@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Homework: Dataset and Distribution in Access</title>
   <meta name="description" content="Homework explanation on dataset and distribution concepts using Access and SQL queries." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+
 
   <style>
     :root {
@@ -144,7 +148,7 @@
       <p>Counts and percentages for one variable at a time using SQL queries in Access.</p>
 
       <h3>a. Subject Distribution</h3>
-      <pre><code>
+      <pre><code class= "language-sql">
 SELECT subject, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
