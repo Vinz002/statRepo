@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework: Dataset and Distribution in Access</title>
+  <meta name="description" content="Homework explanation on dataset and distribution concepts using Access and SQL queries." />
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0ea5e9;
+      --primary-700: #0369a1;
+      --accent: #22c55e;
+      --border: #e2e8f0;
+      --shadow: 0 6px 24px rgba(2, 6, 23, 0.08);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-lg: 28px;
+      --container: 960px;
+    }
+    
+    [data-theme="light"] { color-scheme: light; }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0b1220;
+      --surface: #0f172a;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-700: #0ea5e9;
+      --accent: #34d399;
+      --border: #1f2937;
+      --shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans,
+        "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    img { max-width: 100%; display: block; }
+    a { color: var(--primary-700); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 1.2rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.4rem 1.4rem;
+      margin: 1.2rem 0;
+    }
+    @media (min-width: 720px) { .card { padding: 2rem; } }
+
+    h1, h2 {
+      color: var(--primary-700);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <h1>Homework: Dataset and Distribution Analysis</h1>
+      <p class="lead">Using Microsoft Access and SQL queries, exploring univariate and bivariate distributions.</p>
+    </header>
+
+    <section class="card" id="concept">
+      <h2>1. Concept of Dataset and Distribution</h2>
+      <p>
+        A <strong>dataset</strong> is a collection of structured data, often organized in tables with rows (records) and columns (variables). It captures observations such as student subjects, study hours, and grades in this homework.
+      </p>
+      <p>
+        A <strong>distribution</strong> describes how values of a variable are spread. <em>Univariate distribution</em> examines one variable at a time (e.g., grades frequency). <em>Bivariate distribution</em> explores the relationship between two variables (e.g., study hours vs. grades).
+      </p>
+    </section>
+
+    <section class="card" id="dataset">
+      <h2>2. Sample Dataset in Access</h2>
+      <p>Example table <code>HMWK2</code> with three variables: Subject, study_hours, and grade.</p>
+      <table>
+        <thead>
+          <tr><th>Subject</th><th>study_hours</th><th>grade</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Math</td><td>4</td><td>7</td></tr>
+          <tr><td>History</td><td>6</td><td>9</td></tr>
+          <tr><td>Geography</td><td>3</td><td>6</td></tr>
+          <!-- Add more rows as desired -->
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" id="univariate">
+      <h2>3. Univariate Distributions</h2>
+      <p>Counts and percentages for one variable at a time using SQL queries in Access.</p>
+
+      <h3>a. Subject Distribution</h3>
+      <pre>
+SELECT Subject, COUNT(*) AS frequency,
+  ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
+FROM HMWK2
+GROUP BY Subject
+ORDER BY percentage DESC;
+      </pre>
+      <table>
+        <thead>
+          <tr><th>Subject</th><th>Frequency</th><th>Percentage (%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Math</td><td>4</td><td>40</td></tr>
+          <tr><td>History</td><td>3</td><td>30</td></tr>
+          <tr><td>Geography</td><td>3</td><td>30</td></tr>
+        </tbody>
+      </table>
+
+      <h3>b. Grade Distribution</h3>
+      <pre>
+SELECT grade, COUNT(*) AS frequency,
+  ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
+FROM HMWK2
+GROUP BY grade
+ORDER BY percentage DESC;
+      </pre>
+      <table>
+        <thead>
+          <tr><th>Grade</th><th>Frequency</th><th>Percentage (%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>7</td><td>3</td><td>30</td></tr>
+          <tr><td>8</td><td>2</td><td>20</td></tr>
+          <tr><td>9</td><td>2</td><td>20</td></tr>
+          <tr><td>6</td><td>2</td><td>20</td></tr>
+          <tr><td>5</td><td>1</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" id="bivariate">
+      <h2>4. Bivariate Distribution</h2>
+      <p>Binned relationship of <code>study_hours</code> and <code>grade</code> showing counts of students in hour and grade ranges using Access SQL:</p>
+      <pre>
+SELECT
+  SWITCH(
+    study_hours BETWEEN 0 AND 2, '0-2',
+    study_hours BETWEEN 3 AND 5, '3-5',
+    study_hours BETWEEN 6 AND 8, '6-8',
+    study_hours BETWEEN 9 AND 12, '9-12',
+    TRUE, 'Other'
+  ) AS hours_bin,
+  SUM(IIF(grade BETWEEN 5 AND 6, 1, 0)) AS [5-6],
+  SUM(IIF(grade BETWEEN 7 AND 8, 1, 0)) AS [7-8],
+  SUM(IIF(grade BETWEEN 9 AND 10, 1, 0)) AS [9-10],
+  COUNT(*) AS total
+FROM HMWK2
+GROUP BY
+  SWITCH(
+    study_hours BETWEEN 0 AND 2, '0-2',
+    study_hours BETWEEN 3 AND 5, '3-5',
+    study_hours BETWEEN 6 AND 8, '6-8',
+    study_hours BETWEEN 9 AND 12, '9-12',
+    TRUE, 'Other'
+  )
+ORDER BY hours_bin;
+      </pre>
+      <p>This query groups the data into study hour bins and counts the number of students with grades in different ranges.</p>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>
