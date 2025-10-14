@@ -169,12 +169,13 @@ ORDER BY percentage DESC;
       </table>
 
       <h3>b. Grade Distribution</h3>
-      <pre>
+      <pre><code class= "language-sql">
 SELECT grade, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
 GROUP BY grade
 ORDER BY percentage DESC;
+        </code>
       </pre>
       <table>
         <thead>
@@ -194,7 +195,7 @@ ORDER BY percentage DESC;
       <h2>4. Bivariate Distribution</h2>
       <p>Binned relationship of <code>study_hours</code> and <code>grade</code> showing counts of students in hour and grade ranges using Access SQL:</p>
       <h3>a. Biavariate computation (hours x grades)</h3>
-      <pre>
+      <pre><<code class = "language-sql">
 SELECT
   SWITCH(
     study_hours BETWEEN 0 AND 2, '0-2',
@@ -221,6 +222,7 @@ ORDER BY
     study_hours BETWEEN 6 AND 8, '6-8',
     TRUE, 'Other'
   );
+        </code>
       </pre>
       <p>This query groups students by study hour bins and counts the number with grades in each range. Each row shows one hours bin, each column a grade bin.</p>
     
