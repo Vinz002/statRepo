@@ -118,9 +118,9 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Subject</th>
-            <th>study_hour</th>
+            <th>id</th>
+            <th>subject</th>
+            <th>study hours</th>
             <th>grade</th>
           </tr>
         </thead>
@@ -145,7 +145,7 @@
 
       <h3>a. Subject Distribution</h3>
       <pre>
-SELECT Subject, COUNT(*) AS frequency,
+SELECT subject, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
 GROUP BY Subject
@@ -187,13 +187,13 @@ ORDER BY percentage DESC;
     <section class="card" id="bivariate">
       <h2>4. Bivariate Distribution</h2>
       <p>Binned relationship of <code>study_hours</code> and <code>grade</code> showing counts of students in hour and grade ranges using Access SQL:</p>
+      <h2>3. Bivariate Distribution Query (Access SQL)</h2>
       <pre>
 SELECT
   SWITCH(
     study_hours BETWEEN 0 AND 2, '0-2',
     study_hours BETWEEN 3 AND 5, '3-5',
     study_hours BETWEEN 6 AND 8, '6-8',
-    study_hours BETWEEN 9 AND 12, '9-12',
     TRUE, 'Other'
   ) AS hours_bin,
   SUM(IIF(grade BETWEEN 5 AND 6, 1, 0)) AS [5-6],
@@ -206,12 +206,44 @@ GROUP BY
     study_hours BETWEEN 0 AND 2, '0-2',
     study_hours BETWEEN 3 AND 5, '3-5',
     study_hours BETWEEN 6 AND 8, '6-8',
-    study_hours BETWEEN 9 AND 12, '9-12',
     TRUE, 'Other'
   )
-ORDER BY hours_bin;
+ORDER BY
+  SWITCH(
+    study_hours BETWEEN 0 AND 2, '0-2',
+    study_hours BETWEEN 3 AND 5, '3-5',
+    study_hours BETWEEN 6 AND 8, '6-8',
+    TRUE, 'Other'
+  );
       </pre>
-      <p>This query groups the data into study hour bins and counts the number of students with grades in different ranges.</p>
+      <p>This query groups students by study hour bins and counts the number with grades in each range. Each row shows one hours bin, each column a grade bin.</p>
+    </section>
+    <section class="card" id="output">
+      <h2>4. Output: Bivariate Distribution Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>hours_bin</th>
+            <th>5-6</th>
+            <th>7-8</th>
+            <th>9-10</th>
+            <th>total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>0-2</td><td>2</td><td>1</td><td>1</td><td>4</td></tr>
+          <tr><td>3-5</td><td>1</td><td>3</td><td>1</td><td>5</td></tr>
+          <tr><td>6-8</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+        </tbody>
+      </table>
+      <p>
+        <strong>Interpretation:</strong><br>
+        - Most students who studied 3-5 hours received grades 7-8.<br>
+        - The 0-2 hour group has more students in the 5-6 grade bin, with one in the top bin.<br>
+        - One student is in the 6-8 hour bin, with a grade 7-8.<br>
+        <br>
+        This bivariate table shows how study patterns relate to grade outcomes.
+      </p>
     </section>
 
   </main>
