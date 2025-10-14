@@ -188,6 +188,7 @@ ORDER BY percentage DESC;
     <section class="card" id="bivariate">
       <h2>4. Bivariate Distribution</h2>
       <p>Binned relationship of <code>study_hours</code> and <code>grade</code> showing counts of students in hour and grade ranges using Access SQL:</p>
+      <h3>a. Biavariate computation (hours x grades)</h3>
       <pre>
 SELECT
   SWITCH(
@@ -217,9 +218,8 @@ ORDER BY
   );
       </pre>
       <p>This query groups students by study hour bins and counts the number with grades in each range. Each row shows one hours bin, each column a grade bin.</p>
-    </section>
-    <section class="card" id="output">
-      <h2>4. Output: Bivariate Distribution Table</h2>
+    
+      <h3>4. Output: Bivariate Distribution Table</h3>
       <table>
         <thead>
           <tr>
