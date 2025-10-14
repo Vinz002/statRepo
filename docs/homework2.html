@@ -144,12 +144,13 @@
       <p>Counts and percentages for one variable at a time using SQL queries in Access.</p>
 
       <h3>a. Subject Distribution</h3>
-      <pre>
+      <pre><code>
 SELECT subject, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
 GROUP BY Subject
 ORDER BY percentage DESC;
+        </code>
       </pre>
       <table>
         <thead>
