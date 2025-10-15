@@ -200,59 +200,58 @@ ORDER BY hours_bin;</code></pre>
       <p class="note"><strong>Read it like a heatmap:</strong> most students studying 3–5 hours fall in the 7–8 grade range.</p>
     </section>
 
-  
-    <section class="card" id="caesar">
-      <h2>5. Caesar Cipher Homework (interactive)</h2>
-      <p class="lead">Compute letter distribution, apply a Caesar cipher, then decode without knowing the shift using <em>brute force</em> and <em>language distribution</em> (frequency analysis).</p>
-
-      <div class="grid cols-2">
-        <div>
-          <label for="plain" class="pill">Input text</label>
-          <textarea id="plain" class="input mono" rows="6">The quick brown fox jumps over the lazy dog</textarea>
-
-          <div class="toolbar" style="margin-top:.8rem">
-            <label class="pill" for="shift">Shift: <span id="shiftVal">5</span></label>
-            <input id="shift" type="range" min="0" max="25" value="5" />
-            <button class="btn primary" id="encryptBtn">Encrypt</button>
-            <button class="btn" id="decryptBtn">Decrypt (known shift)</button>
-          </div>
-
-          <label class="pill" style="margin-top:1rem">Ciphertext</label>
-          <textarea id="cipher" class="input mono" rows="4" readonly></textarea>
-
-          <div class="toolbar" style="margin-top:.8rem">
-            <button class="btn" id="bruteforceBtn">Brute-force 26 shifts</button>
-            <button class="btn" id="freqBtn">Decode by frequency analysis</button>
-          </div>
-
-          <div id="result" class="card" style="margin:1rem 0;padding:1rem">
-            <div id="bestGuess"><strong>Best guess:</strong> —</div>
-            <details style="margin-top:.6rem">
-              <summary class="btn" style="display:inline-block">Show all brute-force candidates</summary>
-              <pre id="candidates" class="mono" style="white-space:pre-wrap"></pre>
-            </details>
-          </div>
-        </div>
-
-        <!-- Right: chart -->
-        <div>
-          <h3 style="margin-top:0">Live letter distribution</h3>
-          <p class="muted">Chart shows A–Z relative frequencies for the current text area (letters only, case-insensitive).</p>
-          <canvas id="distChart" width="700" height="220" aria-label="Letter distribution bar chart"></canvas>
-          <div class="toolbar" style="margin-top:.6rem">
-            <button class="btn" id="chartPlain">Use plaintext</button>
-            <button class="btn" id="chartCipher">Use ciphertext</button>
-          </div>
-        </div>
+  <section class="card" id="caesar">
+  <h2>5. Caesar Cipher Homework</h2>
+  <p class="lead">Encrypt a message, examine letter distributions, and crack the code using brute-force and frequency analysis.</p>
+  <div class="cipher-container" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;">
+    <!-- Cipher Tools & Output -->
+    <div>
+      <div class="box" style="margin-bottom:1rem;">
+        <label for="plain" class="pill">Input text</label>
+        <textarea id="plain" class="input mono" rows="4"></textarea>
       </div>
-
-      <h3 style="margin-top:1.2rem">How the frequency analysis works</h3>
-      <p>
-        Each possible shift is tested by decoding the ciphertext and comparing its letter frequencies with typical English frequencies
-        using a <em>chi-square–like</em> score. The shift with the smallest distance is selected.
+      <div class="toolbar" style="margin-bottom:1rem;">
+        <label class="pill" for="shift">Choose shift: <span id="shiftVal">5</span></label>
+        <input id="shift" type="range" min="0" max="25" value="5" style="width:150px;">
+      </div>
+      <button class="btn primary" id="encryptBtn">Encrypt</button>
+      <button class="btn" id="decryptBtn">Decrypt (with shift)</button>
+      <div class="box" style="margin-top:1rem;">
+        <label class="pill">Ciphertext</label>
+        <textarea id="cipher" class="input mono" rows="3" readonly></textarea>
+      </div>
+      <div class="toolbar" style="margin-top:1rem;">
+        <button class="btn" id="bruteforceBtn">Try all shifts</button>
+        <button class="btn accent" id="freqBtn">Frequency Analysis</button>
+      </div>
+      <div id="result" class="card" style="margin-top:1rem;padding:1rem;background:var(--bg);border-radius:var(--radius-sm);">
+        <div id="bestGuess"><strong>Best guess:</strong> —</div>
+        <details>
+          <summary class="btn pill">Show all brute-force results</summary>
+          <pre id="candidates" class="mono" style="white-space:pre-wrap"></pre>
+        </details>
+      </div>
+      <div class="note" style="margin-top:1rem;background:#e0f7fa;">
+        <strong>How frequency analysis works:</strong><br>
+        The most common letter in English is <b>E</b>. By comparing your ciphertext's letter frequencies to English, you can often infer the shift! Try matching the most frequent letter in your cipher to <b>E</b> to estimate the key.
+      </div>
+    </div>
+    <!-- Distribution Chart -->
+    <div>
+      <h3>Letter Distribution Chart</h3>
+      <p class="muted">
+        See how frequent each letter is (A–Z) in your text. Bar height shows percentage, label above each bar gives exact %.
       </p>
-      <pre class="mono" style="white-space:pre-wrap">score = Σ over letters L of (observed(L) − expected(L))² / expected(L)</pre>
-    </section>
+      <canvas id="distChart" width="700" height="220" aria-label="Letter distribution"></canvas>
+      <div style="margin-top:.5rem;">
+        <button class="btn" id="chartPlain">Show plaintext</button>
+        <button class="btn" id="chartCipher">Show ciphertext</button>
+      </div>
+      <div id="distInterpretation" class="note" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
   </div>
 
   <script>
@@ -273,6 +272,28 @@ ORDER BY hours_bin;</code></pre>
     const AU = 'A'.charCodeAt(0), ZU = 'Z'.charCodeAt(0);
     const english = {a:.0817,b:.0149,c:.0278,d:.0425,e:.127,f:.0223,g:.0202,h:.0609,i:.0697,j:.0015,k:.0077,l:.0403,m:.0241,n:.0675,o:.0751,p:.0193,q:.001,r:.0599,s:.0633,t:.0906,u:.0276,v:.0098,w:.0236,x:.0015,y:.0197,z:.0007};
 
+  function drawChart(text){
+  // Chart plotting logic ...
+  for(let i=0;i<26;i++){
+    const val = f[i]/max;
+    const x = 45 + i*bw, y = (h-30) - val*(h-50);
+    ctx.fillRect(x, y, bw-3, (h-30)-y);
+    // label percentage above bar
+    ctx.fillStyle = "#222";
+    ctx.font = '12px system-ui';
+    ctx.fillText((f[i]*100).toFixed(1)+'%', x+2, y-6);
+    // letter label
+    ctx.fillStyle = "#888";
+    ctx.font = '11px system-ui';
+    ctx.fillText(String.fromCharCode(65+i), x+2, h-12);
+  }
+  // Interpretation Note
+  let sorted = [...f].map((v,i)=>({letter:String.fromCharCode(65+i),pct:v})).sort((a,b)=>b.pct-a.pct)[0];
+  document.getElementById('distInterpretation').innerHTML =
+    `<strong>Interpretation:</strong> The most frequent letter is <b>${sorted.letter}</b> (${(sorted.pct*100).toFixed(1)}%). In English, 'E' is most common—comparing this in the ciphertext hints at the shift used!`;
+}
+
+    
     function caesar(text, shift){
       return text.split('').map(ch=>{
         const c = ch.charCodeAt(0);
