@@ -132,7 +132,7 @@
 FROM HMWK2
 GROUP BY subject
 ORDER BY percentage DESC;</code></pre>
-          <p><strong>Interpretation.</strong> Counts records by subject and computes each subject’s share of the dataset.</p>
+          <p><strong>Interpretation.</strong> This query counts how many records belong to each subject and computes each subject's share as a percentage of the total dataset. It helps identify the most common subjects in the group.</p>
           <table>
             <thead><tr><th>Subject</th><th>Frequency</th><th>Percentage (%)</th></tr></thead>
             <tbody>
@@ -141,6 +141,7 @@ ORDER BY percentage DESC;</code></pre>
               <tr><td>Geography</td><td>3</td><td>30</td></tr>
             </tbody>
           </table>
+          <p><strong>Interpretation:</strong> The table shows Math is the most frequent subject, appearing in 40% of entries. History and Geography are both chosen by 30% of students each.</p><br>
         </div>
         <div>
           <h3>b) Grade distribution</h3>
@@ -149,7 +150,7 @@ ORDER BY percentage DESC;</code></pre>
 FROM HMWK2
 GROUP BY grade
 ORDER BY percentage DESC;</code></pre>
-          <p><strong>Interpretation.</strong> Frequency and relative percentage of each grade.</p>
+          <p><strong>Interpretation.</strong> This query calculates the frequency and relative percentage of each grade. It shows how grades are distributed and which ones are most/least common.</p><br>
           <table>
             <thead><tr><th>Grade</th><th>Frequency</th><th>Percentage (%)</th></tr></thead>
             <tbody>
@@ -160,6 +161,7 @@ ORDER BY percentage DESC;</code></pre>
               <tr><td>5</td><td>1</td><td>10</td></tr>
             </tbody>
           </table>
+          <p><strong>Interpretation: </strong>Grade 7 is the most common, found in 30% of students. Grades 8, 9, and 6 are equally frequent (20% each), while grade 5 is the least common outcome at 10%.</p><br>
         </div>
       </div>
     </section>
@@ -196,7 +198,7 @@ ORDER BY hours_bin;</code></pre>
           <tr><td>6-8</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
         </tbody>
       </table>
-      <p class="note"><strong>Read it like a heatmap:</strong> most students studying 3–5 hours fall in the 7–8 grade range.</p>
+      <p class="note"><strong>Interpretation: </strong>The bivariate distribution shows most students who studied 3-5 hours scored 7-8. Lower study bins (0-2 hours) were more likely to get 5-6, but at least one student in that group scored in the top bin (9-10). Only one student studied 6-8 hours and received a 7-8. This helps explore the relationship between study time and performance.</p>
     </section>
 
   
