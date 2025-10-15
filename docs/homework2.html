@@ -1,134 +1,109 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Homework: Dataset and Distribution in Access</title>
-  <meta name="description" content="Homework explanation on dataset and distribution concepts using Access and SQL queries." />
+  <title>Homework: Dataset/Distributions + Caesar Cipher</title>
+  <meta name="description" content="Homework explanation on dataset and distribution concepts (Access/SQL) plus Caesar Cipher encoding/decoding with frequency analysis." />
+  <!-- Prism (keep for SQL blocks) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
 
-
-
   <style>
-    :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --primary: #0ea5e9;
-      --primary-700: #0369a1;
-      --accent: #22c55e;
-      --border: #e2e8f0;
-      --shadow: 0 6px 24px rgba(2, 6, 23, 0.08);
-      --radius: 16px;
-      --radius-sm: 12px;
-      --radius-lg: 28px;
-      --container: 960px;
+    :root{
+      --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#475569;
+      --primary:#0ea5e9; --primary-700:#0369a1; --accent:#22c55e;
+      --border:#e2e8f0; --shadow:0 6px 24px rgba(2,6,23,.08);
+      --radius:16px; --radius-sm:12px; --radius-lg:28px; --container:980px;
     }
-    
-    [data-theme="light"] { color-scheme: light; }
-    [data-theme="dark"] {
-      color-scheme: dark;
-      --bg: #0b1220;
-      --surface: #0f172a;
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --primary: #38bdf8;
-      --primary-700: #0ea5e9;
-      --accent: #34d399;
-      --border: #1f2937;
-      --shadow: 0 10px 30px rgba(0,0,0,0.45);
+    [data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#0b1220; --surface:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+      --primary:#38bdf8; --primary-700:#0ea5e9; --accent:#34d399;
+      --border:#1f2937; --shadow:0 10px 30px rgba(0,0,0,.45);
     }
-
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font: 16px/1.65 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans,
-        "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    }
-    img { max-width: 100%; display: block; }
-    a { color: var(--primary-700); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 1.2rem; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.4rem 1.4rem;
-      margin: 1.2rem 0;
-    }
-    @media (min-width: 720px) { .card { padding: 2rem; } }
-
-    h1, h2 {
-      color: var(--primary-700);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      padding: 0.8rem 1rem;
-      border: 1px solid var(--border);
-      text-align: left;
-    }
-    th {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .lead {
-      color: var(--muted);
-      font-size: 1.05rem;
-    }
-
-    pre {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 1rem;
-      border-radius: var(--radius-sm);
-      overflow-x: auto;
-      font-size: 0.9rem;
-    }
+    *,*:before,*:after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji}
+    img{max-width:100%;display:block}
+    a{color:var(--primary-700);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:var(--container);margin:0 auto;padding:0 1.2rem}
+    .card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem;margin:1.2rem 0}
+    @media (min-width:720px){.card{padding:2rem}}
+    header.card{position:sticky;top:0.6rem;z-index:5}
+    h1,h2{color:var(--primary-700);margin-top:0}
+    .lead{color:var(--muted);font-size:1.05rem}
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+    .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);
+      padding:.55rem .9rem;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
+    .btn.primary{background:var(--primary);color:#fff;border-color:transparent}
+    .pill{display:inline-block;border:1px solid var(--border);padding:.25rem .6rem;
+      border-radius:999px;color:var(--muted);font-size:.85rem}
+    .toc{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .toc a{display:block;background:var(--surface);border:1px solid var(--border);
+      padding:.8rem 1rem;border-radius:12px}
+    table{width:100%;border-collapse:collapse;margin-top:1rem}
+    th,td{padding:.75rem 1rem;border:1px solid var(--border);text-align:left}
+    th{background:var(--primary);color:#fff}
+    pre{background:var(--bg);border:1px solid var(--border);padding:1rem;border-radius:var(--radius-sm);overflow:auto;font-size:.93rem}
+    code.inline{background:var(--bg);border:1px solid var(--border);padding:.1rem .35rem;border-radius:8px}
+    .grid{display:grid;gap:1rem}
+    @media (min-width:880px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+    .note{border-left:4px solid var(--accent);padding:.75rem 1rem;background:rgba(34,197,94,.08);border-radius:8px}
+    /* Caesar demo */
+    .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace}
+    canvas{width:100%;max-width:700px;height:220px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+    footer{color:var(--muted);text-align:center;padding:2rem 0}
   </style>
 </head>
 <body>
   <div class="container">
     <header class="card">
-      <h1>Homework: Dataset and Distribution Analysis</h1>
-      <p class="lead">Using Microsoft Access and SQL queries, exploring univariate and bivariate distributions.</p>
+      <div class="toolbar" style="justify-content:space-between">
+        <div>
+          <h1 style="margin:.2rem 0">Homework Hub</h1>
+          <p class="lead">Dataset &amp; Distribution (Access/SQL) + Caesar Cipher with frequency-analysis decoding.</p>
+        </div>
+        <div class="toolbar">
+          <span class="pill">Light/Dark</span>
+          <button class="btn" id="themeToggle" aria-label="Toggle theme">🌗 Toggle</button>
+          <a class="btn primary" href="#caesar">Jump to Caesar Cipher</a>
+        </div>
+      </div>
+      <div class="toc" style="margin-top:.6rem">
+        <a href="#concept">1) Concept: Dataset &amp; Distribution</a>
+        <a href="#dataset">2) Sample Dataset</a>
+        <a href="#univariate">3) Univariate Distributions</a>
+        <a href="#bivariate">4) Bivariate Distribution</a>
+        <a href="#caesar">5) Caesar Cipher Homework (interactive)</a>
+      </div>
     </header>
 
+    <!-- ====== EXISTING CONTENT (polished) ====== -->
     <section class="card" id="concept">
       <h2>1. Concept of Dataset and Distribution</h2>
       <p>
-        A <strong>dataset</strong> is a collection of structured data, often organized in tables with rows (records) and columns (variables). It captures observations such as student subjects, study hours, and grades in this homework.
+        A <strong>dataset</strong> is a structured collection of data, usually tabular: rows are records and columns are variables.
+        In this example we track <em>subject</em>, <em>study hours</em>, and <em>grade</em>.
       </p>
       <p>
-        A <strong>distribution</strong> describes how values of a variable are spread. <em>Univariate distribution</em> examines one variable at a time (e.g., grades frequency). <em>Bivariate distribution</em> explores the relationship between two variables (e.g., study hours vs. grades).
+        A <strong>distribution</strong> describes how values are spread.
+        <em>Univariate distribution</em> examines one variable (e.g., grade frequencies).
+        <em>Bivariate distribution</em> studies the relation between two variables (e.g., hours vs grade).
       </p>
+      <p class="note"><strong>Tip:</strong> When distributions are skewed or multi-modal, medians and quantiles can be more informative than means.</p>
     </section>
 
     <section class="card" id="dataset">
       <h2>2. Sample Dataset in Access</h2>
-      <p>Example table <code>HMWK2</code> with three variables: Subject, study_hours, and grade.</p>
+      <p>Example table <code class="inline">HMWK2</code> with three variables: <span class="mono">subject</span>, <span class="mono">study_hours</span>, and <span class="mono">grade</span>.</p>
       <table>
-        <thead>
-          <tr>
-            <th>id</th>
-            <th>subject</th>
-            <th>study hours</th>
-            <th>grade</th>
-          </tr>
-        </thead>
+        <thead><tr><th>id</th><th>subject</th><th>study hours</th><th>grade</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>Math</td><td>4</td><td>8</td></tr>
           <tr><td>2</td><td>History</td><td>5</td><td>8</td></tr>
@@ -145,65 +120,51 @@
     </section>
 
     <section class="card" id="univariate">
-      <h2>3. Univariate Distributions</h2>
-      <p>Counts and percentages for one variable at a time using SQL queries in Access.</p>
-
-      <h3>a. Subject Distribution</h3>
-      <pre class = "language-sql"><code class= "language-sql">
-SELECT subject, COUNT(*) AS frequency,
+      <h2>3. Univariate Distributions (Access SQL)</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>a) Subject distribution</h3>
+<pre class="language-sql"><code>SELECT subject, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
-GROUP BY Subject
-ORDER BY percentage DESC;
-        </code>
-      </pre>
- <br><strong>Interpretation:</strong><br>       
-        This query counts how many records belong to each subject and computes each subject's share as a percentage of the total dataset. It helps identify the most common subjects in the group.<br>
-      <table>
-        <thead>
-          <tr><th>Subject</th><th>Frequency</th><th>Percentage (%)</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Math</td><td>4</td><td>40</td></tr>
-          <tr><td>History</td><td>3</td><td>30</td></tr>
-          <tr><td>Geography</td><td>3</td><td>30</td></tr>
-        </tbody>
-      </table>
-       <strong>Interpretation:</strong><br>
-      The table shows Math is the most frequent subject, appearing in 40% of entries. History and Geography are both chosen by 30% of students each.<br>
-      <h3>b. Grade Distribution</h3>
-      <pre class = "language-sql"><code class= "language-sql">
-SELECT grade, COUNT(*) AS frequency,
+GROUP BY subject
+ORDER BY percentage DESC;</code></pre>
+          <p><strong>Interpretation.</strong> Counts records by subject and computes each subject’s share of the dataset.</p>
+          <table>
+            <thead><tr><th>Subject</th><th>Frequency</th><th>Percentage (%)</th></tr></thead>
+            <tbody>
+              <tr><td>Math</td><td>4</td><td>40</td></tr>
+              <tr><td>History</td><td>3</td><td>30</td></tr>
+              <tr><td>Geography</td><td>3</td><td>30</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>b) Grade distribution</h3>
+<pre class="language-sql"><code>SELECT grade, COUNT(*) AS frequency,
   ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM HMWK2), 2) AS percentage
 FROM HMWK2
 GROUP BY grade
-ORDER BY percentage DESC;
-        </code>
-      </pre>
-       <strong>Interpretation:</strong><br>
-              This query calculates the frequency and relative percentage of each grade. It shows how grades are distributed and which ones are most/least common.<br>
-      <table>
-        <thead>
-          <tr><th>Grade</th><th>Frequency</th><th>Percentage (%)</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>7</td><td>3</td><td>30</td></tr>
-          <tr><td>8</td><td>2</td><td>20</td></tr>
-          <tr><td>9</td><td>2</td><td>20</td></tr>
-          <tr><td>6</td><td>2</td><td>20</td></tr>
-          <tr><td>5</td><td>1</td><td>10</td></tr>
-        </tbody>
-      </table>
-          <strong>Interpretation:</strong><br>
-          Grade 7 is the most common, found in 30% of students. Grades 8, 9, and 6 are equally frequent (20% each), while grade 5 is the least common outcome at 10%.<br>
+ORDER BY percentage DESC;</code></pre>
+          <p><strong>Interpretation.</strong> Frequency and relative percentage of each grade.</p>
+          <table>
+            <thead><tr><th>Grade</th><th>Frequency</th><th>Percentage (%)</th></tr></thead>
+            <tbody>
+              <tr><td>7</td><td>3</td><td>30</td></tr>
+              <tr><td>8</td><td>2</td><td>20</td></tr>
+              <tr><td>9</td><td>2</td><td>20</td></tr>
+              <tr><td>6</td><td>2</td><td>20</td></tr>
+              <tr><td>5</td><td>1</td><td>10</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <section class="card" id="bivariate">
-      <h2>4. Bivariate Distribution</h2>
-      <p>Binned relationship of <code>study_hours</code> and <code>grade</code> showing counts of students in hour and grade ranges using Access SQL:</p>
-      <h3>a. Biavariate computation (hours x grades)</h3>
-      <pre class = "language-sql"><code class = "language-sql">
-SELECT
+      <h2>4. Bivariate Distribution (hours × grades)</h2>
+      <p>Counts students by study-hour bins and grade ranges.</p>
+<pre class="language-sql"><code>SELECT
   SWITCH(
     study_hours BETWEEN 0 AND 2, '0-2',
     study_hours BETWEEN 3 AND 5, '3-5',
@@ -222,45 +183,203 @@ GROUP BY
     study_hours BETWEEN 6 AND 8, '6-8',
     TRUE, 'Other'
   )
-ORDER BY
-  SWITCH(
-    study_hours BETWEEN 0 AND 2, '0-2',
-    study_hours BETWEEN 3 AND 5, '3-5',
-    study_hours BETWEEN 6 AND 8, '6-8',
-    TRUE, 'Other'
-  );
-        </code>
-      </pre>
-      <p>This query groups students by study hour bins and counts the number with grades in each range. Each row shows one hours bin, each column a grade bin.</p>
-    
-      <h3>b. Output: Bivariate Distribution Table</h3>
+ORDER BY hours_bin;</code></pre>
+
       <table>
-        <thead>
-          <tr>
-            <th>hours_bin</th>
-            <th>5-6</th>
-            <th>7-8</th>
-            <th>9-10</th>
-            <th>total</th>
-          </tr>
-        </thead>
+        <thead><tr><th>hours_bin</th><th>5-6</th><th>7-8</th><th>9-10</th><th>total</th></tr></thead>
         <tbody>
           <tr><td>0-2</td><td>2</td><td>1</td><td>1</td><td>4</td></tr>
           <tr><td>3-5</td><td>1</td><td>3</td><td>1</td><td>5</td></tr>
           <tr><td>6-8</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
         </tbody>
       </table>
-      <p>
-        <strong>Interpretation:</strong><br>
-        - Most students who studied 3-5 hours received grades 7-8.<br>
-        - The 0-2 hour group has more students in the 5-6 grade bin, with one in the top bin.<br>
-        - One student is in the 6-8 hour bin, with a grade 7-8.<br>
-        <br>
-        This bivariate table shows how study patterns relate to grade outcomes.
-      </p>
+      <p class="note"><strong>Read it like a heatmap:</strong> most students studying 3–5 hours fall in the 7–8 grade range.</p>
     </section>
 
-  </main>
-</div>
+    <!-- ====== NEW: CAESAR CIPHER HOMEWORK (interactive) ====== -->
+    <section class="card" id="caesar">
+      <h2>5. Caesar Cipher Homework (interactive)</h2>
+      <p class="lead">Compute letter distribution, apply a Caesar cipher, then decode without knowing the shift using <em>brute force</em> and <em>language distribution</em> (frequency analysis).</p>
+
+      <div class="grid cols-2">
+        <!-- Left: controls -->
+        <div>
+          <label for="plain" class="pill">Input text</label>
+          <textarea id="plain" class="input mono" rows="6">The quick brown fox jumps over the lazy dog</textarea>
+
+          <div class="toolbar" style="margin-top:.8rem">
+            <label class="pill" for="shift">Shift: <span id="shiftVal">5</span></label>
+            <input id="shift" type="range" min="0" max="25" value="5" />
+            <button class="btn primary" id="encryptBtn">Encrypt</button>
+            <button class="btn" id="decryptBtn">Decrypt (known shift)</button>
+          </div>
+
+          <label class="pill" style="margin-top:1rem">Ciphertext</label>
+          <textarea id="cipher" class="input mono" rows="4" readonly></textarea>
+
+          <div class="toolbar" style="margin-top:.8rem">
+            <button class="btn" id="bruteforceBtn">Brute-force 26 shifts</button>
+            <button class="btn" id="freqBtn">Decode by frequency analysis</button>
+          </div>
+
+          <div id="result" class="card" style="margin:1rem 0;padding:1rem">
+            <div id="bestGuess"><strong>Best guess:</strong> —</div>
+            <details style="margin-top:.6rem">
+              <summary class="btn" style="display:inline-block">Show all brute-force candidates</summary>
+              <pre id="candidates" class="mono" style="white-space:pre-wrap"></pre>
+            </details>
+          </div>
+        </div>
+
+        <!-- Right: chart -->
+        <div>
+          <h3 style="margin-top:0">Live letter distribution</h3>
+          <p class="muted">Chart shows A–Z relative frequencies for the current text area (letters only, case-insensitive).</p>
+          <canvas id="distChart" width="700" height="220" aria-label="Letter distribution bar chart"></canvas>
+          <div class="toolbar" style="margin-top:.6rem">
+            <button class="btn" id="chartPlain">Use plaintext</button>
+            <button class="btn" id="chartCipher">Use ciphertext</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.2rem">How the frequency analysis works</h3>
+      <p>
+        Each possible shift is tested by decoding the ciphertext and comparing its letter frequencies with typical English frequencies
+        using a <em>chi-square–like</em> score. The shift with the smallest distance is selected.
+      </p>
+      <pre class="mono" style="white-space:pre-wrap">score = Σ over letters L of (observed(L) − expected(L))² / expected(L)</pre>
+    </section>
+
+    <footer>
+      Built with plain HTML/CSS/JS • No libraries required • Works offline
+    </footer>
+  </div>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', () => {
+      const cur = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+      localStorage.setItem('theme', root.getAttribute('data-theme'));
+    });
+    (function restoreTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved) root.setAttribute('data-theme', saved);
+    })();
+
+    // Caesar helpers
+    const A = 'a'.charCodeAt(0), Z = 'z'.charCodeAt(0);
+    const AU = 'A'.charCodeAt(0), ZU = 'Z'.charCodeAt(0);
+    const english = {a:.0817,b:.0149,c:.0278,d:.0425,e:.127,f:.0223,g:.0202,h:.0609,i:.0697,j:.0015,k:.0077,l:.0403,m:.0241,n:.0675,o:.0751,p:.0193,q:.001,r:.0599,s:.0633,t:.0906,u:.0276,v:.0098,w:.0236,x:.0015,y:.0197,z:.0007};
+
+    function caesar(text, shift){
+      return text.split('').map(ch=>{
+        const c = ch.charCodeAt(0);
+        if(c>=A && c<=Z) return String.fromCharCode(((c-A+shift)%26+26)%26 + A);
+        if(c>=AU && c<=ZU) return String.fromCharCode(((c-AU+shift)%26+26)%26 + AU);
+        return ch;
+      }).join('');
+    }
+    function cleanLetters(s){ return (s.match(/[a-z]/gi)||[]).join('').toLowerCase(); }
+    function freqMap(s){
+      const out = Array(26).fill(0); const clean = cleanLetters(s);
+      for(const ch of clean){ out[ch.charCodeAt(0)-97]++; }
+      const n = clean.length||1; return out.map(v=>v/n);
+    }
+    function chi2Score(text){
+      const f = freqMap(text);
+      const letters = Object.keys(english);
+      let score = 0;
+      for(let i=0;i<26;i++){
+        const exp = english[letters[i]];
+        const obs = f[i];
+        score += (obs-exp)*(obs-exp)/(exp||1e-9);
+      }
+      return score;
+    }
+    function bestShiftByFreq(cipher){
+      let bestS = 0, best = Infinity, bestText = cipher;
+      for(let s=0;s<26;s++){
+        const dec = caesar(cipher, -s);
+        const sc = chi2Score(dec);
+        if(sc < best){ best = sc; bestS = s; bestText = dec; }
+      }
+      return {shift: bestS, text: bestText, score: best};
+    }
+
+    // UI elements
+    const plain = document.getElementById('plain');
+    const cipher = document.getElementById('cipher');
+    const shift = document.getElementById('shift');
+    const shiftVal = document.getElementById('shiftVal');
+    const encryptBtn = document.getElementById('encryptBtn');
+    const decryptBtn = document.getElementById('decryptBtn');
+    const bruteforceBtn = document.getElementById('bruteforceBtn');
+    const freqBtn = document.getElementById('freqBtn');
+    const bestGuess = document.getElementById('bestGuess');
+    const candidates = document.getElementById('candidates');
+
+    shift.addEventListener('input', ()=> shiftVal.textContent = shift.value);
+
+    function encryptNow(){ cipher.value = caesar(plain.value, parseInt(shift.value,10)); drawChart(cipher.value); }
+    function decryptNow(){ plain.value = caesar(cipher.value, -parseInt(shift.value,10)); drawChart(plain.value); }
+
+    encryptBtn.addEventListener('click', encryptNow);
+    decryptBtn.addEventListener('click', decryptNow);
+
+    bruteforceBtn.addEventListener('click', ()=>{
+      if(!cipher.value.trim()) encryptNow();
+      let out = '';
+      for(let s=0;s<26;s++){
+        out += `Shift ${s.toString().padStart(2,' ')} → ${caesar(cipher.value, -s)}\n`;
+      }
+      candidates.textContent = out.trim();
+      bestGuess.innerHTML = '<strong>Best guess:</strong> — (use "Decode by frequency analysis")';
+    });
+
+    freqBtn.addEventListener('click', ()=>{
+      if(!cipher.value.trim()) encryptNow();
+      const res = bestShiftByFreq(cipher.value);
+      bestGuess.innerHTML = `<strong>Best guess:</strong> shift ${res.shift} → <span class="mono">${res.text}</span>`;
+      plain.value = res.text;
+      drawChart(plain.value);
+    });
+
+    // Chart
+    const canvas = document.getElementById('distChart');
+    const ctx = canvas.getContext('2d');
+
+    function drawChart(text){
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      // axes
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border');
+      ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,h-30); ctx.lineTo(w-10,h-30); ctx.stroke();
+      const f = freqMap(text);
+      const max = Math.max(...f, 0.15); // keep scale reasonable
+      const bars = 26, bw = (w-60)/bars;
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-700');
+      for(let i=0;i<bars;i++){
+        const val = f[i]/max;
+        const x = 45 + i*bw, y = (h-30) - val*(h-50);
+        ctx.fillRect(x, y, bw-3, (h-30)-y);
+        // label
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+        ctx.font = '11px system-ui';
+        ctx.fillText(String.fromCharCode(65+i), x+2, h-12);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-700');
+      }
+    }
+
+    document.getElementById('chartPlain').addEventListener('click', ()=> drawChart(plain.value));
+    document.getElementById('chartCipher').addEventListener('click', ()=> drawChart(cipher.value));
+
+    // init
+    encryptNow(); // prefill ciphertext & chart
+    drawChart(plain.value);
+  </script>
 </body>
 </html>
