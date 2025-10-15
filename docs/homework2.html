@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Homework: Dataset/Distributions + Caesar Cipher</title>
   <meta name="description" content="Homework explanation on dataset and distribution concepts (Access/SQL) plus Caesar Cipher encoding/decoding with frequency analysis." />
-  <!-- Prism (keep for SQL blocks) -->
+ 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
@@ -200,13 +200,12 @@ ORDER BY hours_bin;</code></pre>
       <p class="note"><strong>Read it like a heatmap:</strong> most students studying 3–5 hours fall in the 7–8 grade range.</p>
     </section>
 
-    <!-- ====== NEW: CAESAR CIPHER HOMEWORK (interactive) ====== -->
+  
     <section class="card" id="caesar">
       <h2>5. Caesar Cipher Homework (interactive)</h2>
       <p class="lead">Compute letter distribution, apply a Caesar cipher, then decode without knowing the shift using <em>brute force</em> and <em>language distribution</em> (frequency analysis).</p>
 
       <div class="grid cols-2">
-        <!-- Left: controls -->
         <div>
           <label for="plain" class="pill">Input text</label>
           <textarea id="plain" class="input mono" rows="6">The quick brown fox jumps over the lazy dog</textarea>
@@ -254,10 +253,6 @@ ORDER BY hours_bin;</code></pre>
       </p>
       <pre class="mono" style="white-space:pre-wrap">score = Σ over letters L of (observed(L) − expected(L))² / expected(L)</pre>
     </section>
-
-    <footer>
-      Built with plain HTML/CSS/JS • No libraries required • Works offline
-    </footer>
   </div>
 
   <script>
@@ -274,7 +269,6 @@ ORDER BY hours_bin;</code></pre>
       if(saved) root.setAttribute('data-theme', saved);
     })();
 
-    // Caesar helpers
     const A = 'a'.charCodeAt(0), Z = 'z'.charCodeAt(0);
     const AU = 'A'.charCodeAt(0), ZU = 'Z'.charCodeAt(0);
     const english = {a:.0817,b:.0149,c:.0278,d:.0425,e:.127,f:.0223,g:.0202,h:.0609,i:.0697,j:.0015,k:.0077,l:.0403,m:.0241,n:.0675,o:.0751,p:.0193,q:.001,r:.0599,s:.0633,t:.0906,u:.0276,v:.0098,w:.0236,x:.0015,y:.0197,z:.0007};
