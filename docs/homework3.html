@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework: RSA Encryption, Letter Analysis</title>
+  <meta name="description" content="Homework demonstration of RSA encryption/decryption (small primes) and alphabet frequency analysis for cryptanalysis." />
+  <style>
+    body{font:16px/1.65 system-ui,sans-serif;background:#f8fafc;color:#0f172a;margin:0;}
+    .container{max-width:980px;margin:0 auto;padding:0 1.2rem;}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 6px 24px rgba(2,6,23,.08);padding:2rem;margin:1.4rem 0;}
+    h1,h2{color:#0369a1;margin-top:0;}
+    .lead{color:#475569;font-size:1.1rem;}
+    .toolbar{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;}
+    .pill{display:inline-block;background:#e0f2fe;color:#0369a1;border-radius:12px;font-size:1rem;padding:.3rem .8rem;}
+    .btn{background:#fff;border:1px solid #e2e8f0;padding:.4rem 1.1rem;border-radius:10px;color:#0369a1;cursor:pointer;font-size:1rem;}
+    .btn.primary{background:#0ea5e9;color:#fff;}
+    .accent{background:#22c55e;color:#fff;}
+    .input{width:100%;padding:.7rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff;color:#0f172a;font:1rem monospace;}
+    .grid{display:grid;gap:1.7rem;}
+    @media(min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr;}}
+    table{width:100%;border-collapse:collapse;margin-top:1rem;}
+    th,td{padding:.7rem 1rem;border:1px solid #e2e8f0;text-align:left;}
+    th{background:#0ea5e9;color:#fff;}
+    .note{background:#e0f7fa;padding:1rem;border-radius:10px;margin-top:1rem;}
+    .mono{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;}
+    canvas{width:100%;max-width:700px;height:220px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;}
+    details summary{cursor:pointer;}
+    #rsaParams .input{max-width:120px;display:inline;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <h1>Homework: RSA Encryption &amp; Alphabet Analysis</h1>
+      <p class="lead">Encrypt/decrypt alphabet letters using RSA (small primes <span class="mono">p,q</span>), visualize letter distributions, and explore cryptanalysis by frequency analysis.</p>
+    </header>
+    <section class="card" id="rsaParams">
+      <h2>1. RSA Parameters</h2>
+      <div class="toolbar">
+        <label class="pill">Prime p: <input id="p" type="number" class="input" value="5"></label>
+        <label class="pill">Prime q: <input id="q" type="number" class="input" value="11"></label>
+        <label class="pill">Public exponent e: <input id="e" type="number" class="input" value="7"></label>
+        <button class="btn accent" id="genKeysBtn">Generate Keys</button>
+      </div>
+      <div id="keys" class="note"></div>
+    </section>
+    <section class="card" id="rsaCipher">
+      <h2>2. Encrypt &amp; Decrypt Message</h2>
+      <div class="grid cols-2">
+        <div>
+          <label class="pill" for="plain">Input text (capital letters):</label>
+          <textarea id="plain" class="input mono" rows="5">THEQUICKBROWNFOX</textarea>
+          <div style="margin-top:1rem;">
+            <button class="btn primary" id="encryptBtn">Encrypt</button>
+            <button class="btn" id="decryptBtn">Decrypt</button>
+          </div>
+          <label class="pill" style="margin-top:1.2rem;">RSA Ciphertext (as numbers):</label>
+          <textarea id="cipher" class="input mono" rows="3" readonly></textarea>
+        </div>
+        <div>
+          <h3>Letter Distribution Chart</h3>
+          <p class="muted">Shows how frequently each letter or cipher number occurs. Bar height shows percentage; value above each bar.</p>
+          <canvas id="distChart" width="700" height="220" aria-label="Letter distribution bar chart"></canvas>
+          <div class="toolbar" style="margin-top:.6rem;">
+            <button class="btn" id="chartPlain">Show plaintext</button>
+            <button class="btn" id="chartCipher">Show ciphertext</button>
+          </div>
+          <div id="distInterpretation" class="note"></div>
+        </div>
+      </div>
+    </section>
+    <section class="card" id="rsaAnalysis">
+      <h2>3. Frequency Analysis & Attack</h2>
+      <p>
+        <strong>Cryptanalysis:</strong> Decrypt RSA message without knowing private key, guess plaintext using alphabet frequency distribution <em>(e.g. 'E' is most frequent in English)</em>.
+      </p>
+      <div style="margin-bottom:1rem;">
+        <button class="btn" id="freqBtn">Guess mapping by frequency</button>
+      </div>
+      <div id="analysisResult" class="note"></div>
+      <details style="margin-top:1rem;">
+        <summary class="btn pill">Show ciphertext frequency table</summary>
+        <pre id="cipherFreqTable" class="mono"></pre>
+      </details>
+      <div class="note" style="margin-top:1rem;">
+        <strong>Interpretation:</strong> If you see similar encrypted numbers repeating, you can assign those to frequent letters (E, T, A...) and test decrypting your message. Small keys make this realistic!
+      </div>
+    </section>
+  </div>
+  <script>
+    // Helper: Modular exponentiation for RSA
+    function modPow(base, exp, mod) {
+      let r = 1n; base = BigInt(base); mod = BigInt(mod); exp = BigInt(exp);
+      while(exp > 0n) {
+        if(exp % 2n === 1n) r = (r * base) % mod;
+        base = (base * base) % mod; exp = exp/2n;
+      }
+      return r;
+    }
+    // Helper: Modular inverse
+    function modInverse(e, phi) {
+      e = BigInt(e); phi = BigInt(phi);
+      for (let d=2n; d<phi; d++)
+        if ((e*d)%phi===1n) return d;
+      return -1;
+    }
+    // Letter/numeric mapping
+    const alpha = '_ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    function toNum(ch){ return alpha.indexOf(ch); }
+    function fromNum(n){ return alpha[n]; }
+    // Get primes and RSA keys
+    function getParams(){
+      let p = parseInt(document.getElementById('p').value,10)||5;
+      let q = parseInt(document.getElementById('q').value,10)||11;
+      let e = parseInt(document.getElementById('e').value,10)||7;
+      let n = p*q; let phi = (p-1)*(q-1);
+      let d = Number(modInverse(e, phi)); return {p,q,e,n,phi,d};
+    }
+    // Show key summary
+    function showKeys(){
+      let {p,q,e,n,phi,d} = getParams();
+      document.getElementById('keys').innerHTML =
+        `<strong>n = p × q = ${p} × ${q} = ${n}<br>φ(n) = (${p}-1)×(${q}-1) = ${phi}<br>Public key: (e=${e}, n=${n})<br>Private key: (d=${d}, n=${n})</strong>`;
+    }
+    document.getElementById('genKeysBtn').onclick = showKeys;
+    showKeys();
+
+    // Encrypt
+    function encryptText(text) {
+      let {e,n} = getParams();
+      let nums = text.toUpperCase().replace(/[^A-Z]/g,'').split('').map(c=>toNum(c));
+      let cipher = nums.map(x=>modPow(x,e,n)).map(x=>x.toString()).join(' ');
+      return cipher;
+    }
+    // Decrypt
+    function decryptText(cipherText) {
+      let {d,n} = getParams();
+      let nums = cipherText.trim().split(/\s+/).map(Number);
+      let plainNums = nums.map(y=>modPow(y,d,n));
+      let plain = plainNums.map(n=>fromNum(Number(n))).join('');
+      return plain;
+    }
+    // Interactivity
+    document.getElementById('encryptBtn').onclick = () => {
+      document.getElementById('cipher').value = encryptText(document.getElementById('plain').value);
+      drawChart(document.getElementById('cipher').value, false);
+    };
+    document.getElementById('decryptBtn').onclick = () => {
+      document.getElementById('plain').value = decryptText(document.getElementById('cipher').value);
+      drawChart(document.getElementById('plain').value, true);
+    };
+    document.getElementById('chartPlain').onclick = () => {
+      drawChart(document.getElementById('plain').value,true);
+    };
+    document.getElementById('chartCipher').onclick = () => {
+      drawChart(document.getElementById('cipher').value,false);
+    };
+    function asciiFreq(nums, bins){
+      // Counts letters or numbers for chart
+      let f = Array(bins).fill(0), total = 0;
+      for(const n of nums) if(n>=0 && n<bins){ f[n]++; total++; }
+      return f.map(v=>v/total);
+    }
+    function drawChart(str,isPlain){
+      let canvas = document.getElementById('distChart'), ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      let bins = isPlain?27:getParams().n;
+      let f = [];
+      if(isPlain){
+        let nums = str.toUpperCase().replace(/[^A-Z]/g,'').split('').map(c=>toNum(c));
+        f = asciiFreq(nums,27);
+      } else {
+        let nums = str.trim().split(/\s+/).map(Number).filter(n=>!isNaN(n));
+        f = asciiFreq(nums, getParams().n);
+      }
+      let max = Math.max(...f,0.20), barcount=isPlain?27:getParams().n, bw = (canvas.width-60)/barcount;
+      for(let i=0;i<barcount;i++){
+        const val = f[i]/max;
+        if(f[i]>0){
+          const x = 45+i*bw, y = (canvas.height-30)-val*(canvas.height-50);
+          ctx.fillStyle = "#22c55e"; ctx.fillRect(x,y,bw-3,(canvas.height-30)-y);
+          ctx.fillStyle="#222";
+          ctx.font = '12px system-ui';
+          ctx.fillText((f[i]*100).toFixed(1)+'%',x+2,y-6);
+          ctx.fillStyle="#888";
+          ctx.font = '11px system-ui';
+          ctx.fillText(isPlain?alpha[i]:'['+i+']',x+2,canvas.height-12);
+        }
+      }
+      let sorted = [...f].map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v)[0];
+      document.getElementById('distInterpretation').innerHTML =
+        `<strong>Most frequent ${isPlain?'letter':'cipher number'}: ${isPlain?alpha[sorted.i]:'['+sorted.i+']'} (${(sorted.v*100).toFixed(1)}%)</strong>.<br>${isPlain?'In English, E is most frequent—cipher frequency can reveal the mapping!':'Match cipher frequencies to English to guess probable letters.'}`;
+    }
+    drawChart(document.getElementById('plain').value, true);
+
+    // Frequency analysis/attack
+    document.getElementById('freqBtn').onclick = ()=>{
+      let cipherText = document.getElementById('cipher').value.trim();
+      if(!cipherText) return;
+      let nums = cipherText.split(/\s+/).map(Number);
+      let freq = {}, total=nums.length;
+      nums.forEach(n=>{ freq[n]= (freq[n]||0)+1; });
+      let freqArray = Object.entries(freq).map(([k,v])=>({number:k,count:v,pct:(v/total)*100}))
+        .sort((a,b)=>b.count-a.count);
+      let engOrder = "ETAOINSHRDLCUMWFGYPBVKJXQZ".split('');
+      let mapping = {};
+      for(let i=0;i<freqArray.length && i<engOrder.length;i++) mapping[freqArray[i].number] = engOrder[i];
+      let guessed = nums.map(n=>mapping[n]||'?').join('');
+      document.getElementById('analysisResult').innerHTML =
+        `<strong>Guess by frequency:</strong> <span class="mono">${guessed}</span> <br>Most frequent cipher numbers mapped to common English letters (E, T, A...).`;
+      // Table
+      let table = 'Num\tCount\t%\tGuess\n';
+      freqArray.forEach(row=>{
+        table += `${row.number}\t${row.count}\t${row.pct.toFixed(1)}%\t${mapping[row.number]||'?'}\n`;
+      });
+      document.getElementById('cipherFreqTable').textContent = table;
+    };
+  </script>
+</body>
+</html>
