@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Homework: Law of Large Numbers Simulation</title>
+  <meta name="description" content="Simulation illustrating the Law of Large Numbers using multiple trajectories and histogram visualization.">
+  <style>
+    :root{
+      --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#475569;
+      --primary:#0ea5e9; --primary-700:#0369a1; --accent:#22c55e;
+      --border:#e2e8f0; --shadow:0 6px 24px rgba(2,6,23,.08);
+      --radius:16px; --container:980px;
+    }
+    [data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#0b1220; --surface:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+      --primary:#38bdf8; --primary-700:#0ea5e9; --accent:#34d399;
+      --border:#1f2937; --shadow:0 10px 30px rgba(0,0,0,.45);
+    }
+    body{background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;margin:0;}
+    .container{max-width:var(--container);margin:0 auto;padding:0 1.2rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;margin:1.4rem 0;}
+    h1,h2,h3{color:var(--primary-700);}
+    .lead{color:var(--muted);font-size:1.05rem;}
+    .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:.6rem 1rem;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);}
+    .btn.primary{background:var(--primary);color:#fff;border:none;}
+    .input{padding:.6rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);}
+    .toolbar{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;}
+    canvas{width:100%;max-width:900px;height:420px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+    .note{background:rgba(34,197,94,.08);border-left:4px solid var(--accent);padding:.9rem 1rem;border-radius:8px;margin-top:1rem;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <h1>Homework: Law of Large Numbers Simulation</h1>
+      <p class="lead">Visualize how the empirical frequency of success converges to its theoretical probability through multiple simulation paths and final distribution histogram.</p>
+    </header>
+
+    <section class="card">
+      <h2>1. Parameters</h2>
+      <div class="toolbar">
+        <label>Probability of success (p): <input type="number" id="p" class="input" value="0.5" min="0" max="1" step="0.05" style="width:90px;"></label>
+        <label>Trials (n): <input type="number" id="n" class="input" value="1000" min="10" max="5000" step="100" style="width:90px;"></label>
+        <label>Trajectories (m): <input type="number" id="m" class="input" value="20" min="1" max="100" style="width:90px;"></label>
+        <button class="btn primary" id="simulateBtn">Run Simulation</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Simulation Plot</h2>
+      <p>Each colored line represents one trajectory of the relative frequency \( f(n) \), calculated as the proportion of successes up to trial \( n \). The histogram on the right shows the distribution of \( f(n) \) across all trajectories at the final step.</p>
+      <canvas id="llnCanvas"></canvas>
+      <div class="note" id="summary"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Explanation</h2>
+      <p>
+        This experiment demonstrates the <strong>Law of Large Numbers (LLN)</strong>: as the number of trials \( n \) increases, the sample proportion of successes \( f(n) \) tends to the underlying probability \( p \).
+      </p>
+      <ul>
+        <li>Each line shows one random experiment (trajectory).</li>
+        <li>As n increases, the squiggly random paths flatten near p.</li>
+        <li>The histogram on the right becomes narrower, illustrating convergence of the empirical mean.</li>
+      </ul>
+    </section>
+  </div>
+
+<script>
+const canvas = document.getElementById('llnCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 900; canvas.height = 420;
+
+function simulateLLN(p=0.5, n=1000, m=20){
+  const trials = [];
+  for(let j=0;j<m;j++){
+    let cumulative=0, traj=[];
+    for(let i=1;i<=n;i++){
+      if(Math.random() < p) cumulative++;
+      traj.push(cumulative/i);
+    }
+    trials.push(traj);
+  }
+  return trials;
+}
+
+function drawLLN(trials,p){
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const n = trials[0].length, m=trials.length;
+  ctx.save();
+  ctx.translate(40,20);
+  const plotW = W-120, plotH = H-60;
+  // axes
+  ctx.strokeStyle="#ccc";ctx.beginPath();
+  ctx.moveTo(0,plotH);ctx.lineTo(plotW,plotH);ctx.stroke();
+  ctx.moveTo(0,0);ctx.lineTo(0,plotH);ctx.stroke();
+  // horizontal line for probability
+  ctx.beginPath();
+  ctx.strokeStyle="red";ctx.setLineDash([5,3]);
+  const yP = plotH - p*plotH;
+  ctx.moveTo(0,yP);ctx.lineTo(plotW,yP);ctx.stroke();
+  ctx.setLineDash([]);
+  // labels
+  ctx.fillStyle="#0369a1";
+  ctx.font="13px system-ui";
+  ctx.fillText("Relative frequency f(n)",5,15);
+  ctx.fillText("n →",plotW-30,plotH+20);
+  ctx.fillStyle="red";
+  ctx.fillText("p="+p.toFixed(2),plotW-60,yP-5);
+  // draw trajectories
+  ctx.lineWidth=1;
+  for(let j=0;j<m;j++){
+    const col = `hsl(${(j/m)*360},70%,50%)`;
+    ctx.beginPath();ctx.strokeStyle=col;
+    for(let i=0;i<n;i++){
+      const x = (i/n)*plotW;
+      const y = plotH - trials[j][i]*plotH;
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  // Histogram at the right
+  const finalVals = trials.map(t=>t[t.length-1]);
+  const bins = 15;
+  const min=0, max=1;
+  const counts = Array(bins).fill(0);
+  for(const v of finalVals){
+    const idx=Math.min(bins-1,Math.floor((v-min)/(max-min)*bins));
+    counts[idx]++;
+  }
+  const binW = (plotH-10)/bins;
+  const maxCount=Math.max(...counts);
+  ctx.translate(plotW+20,0);
+  ctx.fillStyle="#0ea5e9";
+  for(let b=0;b<bins;b++){
+    let barLen=(counts[b]/maxCount)*80;
+    let y=plotH-b*binW-binW;
+    ctx.fillRect(0,y,barLen,binW-2);
+  }
+  ctx.restore();
+}
+
+document.getElementById('simulateBtn').onclick=()=>{
+  let p=parseFloat(document.getElementById('p').value);
+  let n=parseInt(document.getElementById('n').value);
+  let m=parseInt(document.getElementById('m').value);
+  const trials=simulateLLN(p,n,m);
+  drawLLN(trials,p);
+  const finals = trials.map(t=>t[t.length-1]);
+  const mean = finals.reduce((a,b)=>a+b,0)/finals.length;
+  const sd = Math.sqrt(finals.map(x=>(x-mean)**2).reduce((a,b)=>a+b,0)/(m-1));
+  document.getElementById('summary').innerHTML = 
+    `<strong>Summary:</strong> After ${n} trials and ${m} trajectories:<br>
+     Mean of f(n): ${mean.toFixed(3)}, SD: ${sd.toFixed(3)}.<br>
+     The histogram on the right shows that sample frequencies concentrate near p = ${p}.`;
+};
+
+// initial render
+const trials0 = simulateLLN(0.5,1000,20);
+drawLLN(trials0,0.5);
+</script>
+</body>
+</html>
