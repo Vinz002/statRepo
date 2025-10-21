@@ -46,30 +46,63 @@
       <div id="keys" class="note"></div>
     </section>
     <section class="card" id="rsaCipher">
-      <h2>2. Encrypt &amp; Decrypt Message</h2>
-      <div class="grid cols-2">
-        <div>
-          <label class="pill" for="plain">Input text (capital letters):</label>
-          <textarea id="plain" class="input mono" rows="5">THEQUICKBROWNFOX</textarea>
-          <div style="margin-top:1rem;">
-            <button class="btn primary" id="encryptBtn">Encrypt</button>
-            <button class="btn" id="decryptBtn">Decrypt</button>
-          </div>
-          <label class="pill" style="margin-top:1.2rem;">RSA Ciphertext (as numbers):</label>
-          <textarea id="cipher" class="input mono" rows="3" readonly></textarea>
-        </div>
-        <div>
-          <h3>Letter Distribution Chart</h3>
-          <p class="muted">Shows how frequently each letter or cipher number occurs. Bar height shows percentage; value above each bar.</p>
-          <canvas id="distChart" width="700" height="220" aria-label="Letter distribution bar chart"></canvas>
-          <div class="toolbar" style="margin-top:.6rem;">
-            <button class="btn" id="chartPlain">Show plaintext</button>
-            <button class="btn" id="chartCipher">Show ciphertext</button>
-          </div>
-          <div id="distInterpretation" class="note"></div>
-        </div>
+  <h2>2. Encrypt and Decrypt Message</h2>
+  <p class="lead">Enter a short message to see how each letter becomes a number, then watch RSA transform it using tiny primes.</p>
+
+  <div class="grid cols-2">
+    <!-- Left column -->
+    <div>
+      <h3>Step-by-Step Encryption</h3>
+
+      <ol style="line-height:1.7">
+        <li><strong>1️⃣ Convert letters → numbers</strong><br>
+          Each letter A–Z becomes a number (A=1, B=2, ..., Z=26).
+        </li>
+        <li><strong>2️⃣ Apply RSA encryption</strong><br>
+          Formula: <code>c = (m^e) mod n</code><br>
+          <small>Use the public key (e, n) to transform every number independently.</small>
+        </li>
+      </ol>
+
+      <label class="pill">Plaintext (letters only)</label>
+      <textarea id="plain" class="input mono" rows="4">HELLOWORLD</textarea>
+
+      <div class="toolbar" style="margin-top:1rem;">
+        <button class="btn primary" id="encryptBtn">🔒 Encrypt with Public Key</button>
+        <button class="btn" id="decryptBtn">🔓 Decrypt with Private Key</button>
       </div>
-    </section>
+
+      <div style="margin-top:1rem;">
+        <label class="pill">Ciphertext (numeric RSA output)</label>
+        <textarea id="cipher" class="input mono" rows="4" readonly></textarea>
+
+        <details style="margin-top:.8rem;">
+          <summary class="btn pill">Explain this step</summary>
+          <p>During encryption, each numeric letter (m) is raised to the power of the public exponent (e) and then taken modulo n. For example, if A=1, e=7, n=33, encrypted = (1⁷ mod 33) = 1. Decrypting reverses this using the private exponent (d).</p>
+        </details>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+      <h3>Live Frequency Visualization</h3>
+      <p class="muted">Observe frequency shifts before and after encryption. Low variation → easy cracking (like Caesar). High variation → stronger cipher.</p>
+      <canvas id="distChart" width="700" height="220" aria-label="Letter/cipher frequency chart"></canvas>
+
+      <div style="margin-top:.6rem;">
+        <button class="btn" id="chartPlain">📊 Show plaintext frequencies</button>
+        <button class="btn" id="chartCipher">🔢 Show ciphertext frequencies</button>
+      </div>
+
+      <div id="distInterpretation" class="note" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:1.2rem;">
+    <strong>Decryption reminder:</strong> RSA decryption uses the private key (d, n) with the inverse formula <code>m = (c^d) mod n</code>, converting ciphertext numbers back to letters. If correctly implemented, you recover your exact original text!
+  </div>
+</section>
+
     <section class="card" id="rsaAnalysis">
       <h2>3. Frequency Analysis & Attack</h2>
       <p>
