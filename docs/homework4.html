@@ -71,7 +71,7 @@
 <script>
 const canvas = document.getElementById('llnCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 900; canvas.height = 420;
+canvas.width = 940; canvas.height = 420;
 
 function simulateLLN(p=0.5, n=1000, m=20){
   const trials = [];
@@ -93,7 +93,7 @@ function drawLLN(trials, p) {
 
   // layout
   const leftPad = 50, topPad = 20, bottomPad = 40;
-  const plotW = W - 200, plotH = H - topPad - bottomPad; // give more room to histogram
+  const plotW = W - 240, plotH = H - topPad - bottomPad;  // give more room to histogram
   const originX = leftPad, originY = topPad;
 
   ctx.save();
@@ -182,7 +182,7 @@ function drawLLN(trials, p) {
 
   // histogram box
   const histX = plotW + 30;             // start x after plot
-  const histW = 130;                    // width for bars + axis
+ const histW = 110;                   // width for bars + axis
   const barPad = 2;
 
   // background panel
