@@ -90,92 +90,171 @@ function drawLLN(trials, p) {
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
   const n = trials[0].length, m = trials.length;
-  ctx.save();
-  ctx.translate(40, 20);
-  const plotW = W - 160, plotH = H - 60;
 
-  // axes
+  // layout
+  const leftPad = 50, topPad = 20, bottomPad = 40;
+  const plotW = W - 200, plotH = H - topPad - bottomPad; // give more room to histogram
+  const originX = leftPad, originY = topPad;
+
+  ctx.save();
+  ctx.translate(originX, originY);
+
+  // === MAIN AXES (trajectories) ===
   ctx.strokeStyle = "#cbd5e1";
   ctx.lineWidth = 1;
   ctx.beginPath();
+  // x axis
   ctx.moveTo(0, plotH);
   ctx.lineTo(plotW, plotH);
+  // y axis
   ctx.moveTo(0, 0);
   ctx.lineTo(0, plotH);
   ctx.stroke();
 
-  // horizontal line for probability
+  // y grid + labels for f(n)
+  ctx.font = "12px system-ui";
+  ctx.fillStyle = "#64748b";
+  ctx.textAlign = "right";
+  const yTicks = [0, 0.25, 0.5, 0.75, 1];
+  ctx.strokeStyle = "rgba(148,163,184,0.35)";
+  for (const t of yTicks) {
+    const y = plotH - t * plotH;
+    // grid
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(plotW, y); ctx.stroke();
+    // labels
+    ctx.fillText(t.toFixed(2), -8, y + 4);
+  }
+
+  // x ticks (fix the “n →”)
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#64748b";
+  const xTicks = [0, Math.round(n/2), n];
+  for (const xt of xTicks) {
+    const x = (xt / n) * plotW;
+    ctx.beginPath(); ctx.moveTo(x, plotH); ctx.lineTo(x, plotH + 6); ctx.stroke();
+    ctx.fillText(String(xt), x, plotH + 20);
+  }
+  // x-axis label
+  ctx.fillStyle = "#0369a1";
+  ctx.fillText("Trials n →", plotW/2, plotH + 34);
+
+  // horizontal line at p
   const yP = plotH - p * plotH;
   ctx.beginPath();
-  ctx.strokeStyle = "red";
   ctx.setLineDash([6, 4]);
-  ctx.moveTo(0, yP);
-  ctx.lineTo(plotW, yP);
-  ctx.stroke();
+  ctx.strokeStyle = "red";
+  ctx.moveTo(0, yP); ctx.lineTo(plotW, yP); ctx.stroke();
   ctx.setLineDash([]);
-
-  // labels
-  ctx.fillStyle = "#0369a1";
-  ctx.font = "13px system-ui";
-  ctx.fillText("Relative frequency f(n)", 5, 15);
-  ctx.fillText("n →", plotW - 30, plotH + 20);
   ctx.fillStyle = "red";
-  ctx.fillText("p=" + p.toFixed(2), plotW - 60, yP - 5);
+  ctx.textAlign = "left";
+  ctx.fillText("p = " + p.toFixed(2), plotW - 70, yP - 6);
 
-  // draw trajectories
+  // title for left axis
+  ctx.save();
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0369a1";
+  ctx.fillText("Relative frequency  f(n)", -plotH/2, -35);
+  ctx.restore();
+
+  // === TRAJECTORIES ===
   ctx.lineWidth = 1.2;
   for (let j = 0; j < m; j++) {
     const col = `hsl(${(j / m) * 360}, 70%, 50%)`;
-    ctx.beginPath();
-    ctx.strokeStyle = col;
+    ctx.beginPath(); ctx.strokeStyle = col;
     for (let i = 0; i < n; i++) {
       const x = (i / n) * plotW;
       const y = plotH - trials[j][i] * plotH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
 
-  // Histogram at the right
+  // === HISTOGRAM (right side) ===
   const finalVals = trials.map(t => t[t.length - 1]);
-  const bins = 15;
-  const min = 0, max = 1;
+  const bins = 15, min = 0, max = 1;
   const counts = Array(bins).fill(0);
   for (const v of finalVals) {
     const idx = Math.min(bins - 1, Math.floor((v - min) / (max - min) * bins));
     counts[idx]++;
   }
-
-  const binH = (plotH - 10) / bins;
   const maxCount = Math.max(...counts);
 
-  ctx.translate(plotW + 30, 0);
+  // histogram box
+  const histX = plotW + 30;             // start x after plot
+  const histW = 130;                    // width for bars + axis
+  const barPad = 2;
 
-  // background box for histogram
-  ctx.fillStyle = "rgba(148, 163, 184, 0.1)";
-  ctx.fillRect(0, 0, 100, plotH);
+  // background panel
+  ctx.fillStyle = "rgba(148,163,184,0.12)";
+  ctx.fillRect(histX - 10, 0, histW + 20, plotH);
 
-  // draw bars
-  for (let b = 0; b < bins; b++) {
-    const barLen = (counts[b] / maxCount) * 100;
-    const y = plotH - b * binH - binH;
-    ctx.fillStyle = "rgba(14,165,233,0.8)";
-    ctx.strokeStyle = "rgba(30,41,59,0.6)";
-    ctx.lineWidth = 1;
+  // probability ticks alongside histogram (aligned to main y-scale)
+  ctx.fillStyle = "#64748b";
+  ctx.textAlign = "left";
+  for (const t of yTicks) {
+    const y = plotH - t * plotH;
     ctx.beginPath();
-    ctx.rect(0, y, barLen, binH - 3);
-    ctx.fill();
-    ctx.stroke();
+    ctx.strokeStyle = "rgba(148,163,184,0.25)";
+    ctx.moveTo(histX - 10, y); ctx.lineTo(histX + histW + 10, y); ctx.stroke();
+    if (t === 0 || t === 0.5 || t === 1) {
+      ctx.fillText(t.toFixed(2), histX + histW + 14, y + 4);
+    }
   }
 
- 
+  // draw bars (horizontal) with labels
+  ctx.textAlign = "right";
+  for (let b = 0; b < bins; b++) {
+    const t0 = b / bins, t1 = (b + 1) / bins;           // prob range covered by the bin
+    const yTop = plotH - t1 * plotH;
+    const yBottom = plotH - t0 * plotH;
+    const barH = Math.max(1, yBottom - yTop - barPad);
+
+    const barLen = maxCount === 0 ? 0 : (counts[b] / maxCount) * (histW - 40);
+    const y = yTop + barPad/2;
+
+    // bar
+    ctx.fillStyle = "rgba(14,165,233,0.85)";
+    ctx.strokeStyle = "rgba(30,41,59,0.55)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(histX, y, barLen, barH);
+    ctx.fill(); ctx.stroke();
+
+    // count label at end of bar
+    ctx.fillStyle = "#0f172a";
+    if (counts[b] > 0) {
+      ctx.textAlign = "left";
+      ctx.font = "11px system-ui";
+      ctx.fillText(String(counts[b]), histX + barLen + 6, y + barH/2 + 4);
+    }
+  }
+
+  // histogram axes & labels
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#0369a1";
+  ctx.font = "12px system-ui";
+  ctx.fillText("Distribution of f(n) at final trial n", histX - 10, -6);
+
+  // count axis (bottom of histogram)
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.beginPath();
+  ctx.moveTo(histX, plotH + 0.5); ctx.lineTo(histX + histW - 10, plotH + 0.5); ctx.stroke();
+  const countTicks = (maxCount <= 4) ? maxCount : 4;
   ctx.fillStyle = "#64748b";
-  ctx.font = "11px system-ui";
-  ctx.fillText("Histogram of final f(n)", 0, -5);
+  ctx.textAlign = "center";
+  for (let k = 0; k <= countTicks; k++) {
+    const cVal = Math.round((k / countTicks) * maxCount);
+    const x = histX + ((k / countTicks) * (histW - 10));
+    ctx.beginPath(); ctx.moveTo(x, plotH); ctx.lineTo(x, plotH + 6); ctx.stroke();
+    ctx.fillText(String(cVal), x, plotH + 20);
+  }
+  ctx.fillStyle = "#0369a1";
+  ctx.fillText("trajectory count →", histX + (histW - 10)/2, plotH + 36);
 
   ctx.restore();
 }
+
 
 document.getElementById('simulateBtn').onclick=()=>{
   let p=parseFloat(document.getElementById('p').value);
