@@ -86,60 +86,94 @@ function simulateLLN(p=0.5, n=1000, m=20){
   return trials;
 }
 
-function drawLLN(trials,p){
+function drawLLN(trials, p) {
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
-  const n = trials[0].length, m=trials.length;
+  ctx.clearRect(0, 0, W, H);
+  const n = trials[0].length, m = trials.length;
   ctx.save();
-  ctx.translate(40,20);
-  const plotW = W-120, plotH = H-60;
+  ctx.translate(40, 20);
+  const plotW = W - 160, plotH = H - 60;
+
   // axes
-  ctx.strokeStyle="#ccc";ctx.beginPath();
-  ctx.moveTo(0,plotH);ctx.lineTo(plotW,plotH);ctx.stroke();
-  ctx.moveTo(0,0);ctx.lineTo(0,plotH);ctx.stroke();
-  // horizontal line for probability
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.strokeStyle="red";ctx.setLineDash([5,3]);
-  const yP = plotH - p*plotH;
-  ctx.moveTo(0,yP);ctx.lineTo(plotW,yP);ctx.stroke();
+  ctx.moveTo(0, plotH);
+  ctx.lineTo(plotW, plotH);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, plotH);
+  ctx.stroke();
+
+  // horizontal line for probability
+  const yP = plotH - p * plotH;
+  ctx.beginPath();
+  ctx.strokeStyle = "red";
+  ctx.setLineDash([6, 4]);
+  ctx.moveTo(0, yP);
+  ctx.lineTo(plotW, yP);
+  ctx.stroke();
   ctx.setLineDash([]);
+
   // labels
-  ctx.fillStyle="#0369a1";
-  ctx.font="13px system-ui";
-  ctx.fillText("Relative frequency f(n)",5,15);
-  ctx.fillText("n →",plotW-30,plotH+20);
-  ctx.fillStyle="red";
-  ctx.fillText("p="+p.toFixed(2),plotW-60,yP-5);
+  ctx.fillStyle = "#0369a1";
+  ctx.font = "13px system-ui";
+  ctx.fillText("Relative frequency f(n)", 5, 15);
+  ctx.fillText("n →", plotW - 30, plotH + 20);
+  ctx.fillStyle = "red";
+  ctx.fillText("p=" + p.toFixed(2), plotW - 60, yP - 5);
+
   // draw trajectories
-  ctx.lineWidth=1;
-  for(let j=0;j<m;j++){
-    const col = `hsl(${(j/m)*360},70%,50%)`;
-    ctx.beginPath();ctx.strokeStyle=col;
-    for(let i=0;i<n;i++){
-      const x = (i/n)*plotW;
-      const y = plotH - trials[j][i]*plotH;
-      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  ctx.lineWidth = 1.2;
+  for (let j = 0; j < m; j++) {
+    const col = `hsl(${(j / m) * 360}, 70%, 50%)`;
+    ctx.beginPath();
+    ctx.strokeStyle = col;
+    for (let i = 0; i < n; i++) {
+      const x = (i / n) * plotW;
+      const y = plotH - trials[j][i] * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
+
   // Histogram at the right
-  const finalVals = trials.map(t=>t[t.length-1]);
+  const finalVals = trials.map(t => t[t.length - 1]);
   const bins = 15;
-  const min=0, max=1;
+  const min = 0, max = 1;
   const counts = Array(bins).fill(0);
-  for(const v of finalVals){
-    const idx=Math.min(bins-1,Math.floor((v-min)/(max-min)*bins));
+  for (const v of finalVals) {
+    const idx = Math.min(bins - 1, Math.floor((v - min) / (max - min) * bins));
     counts[idx]++;
   }
-  const binW = (plotH-10)/bins;
-  const maxCount=Math.max(...counts);
-  ctx.translate(plotW+20,0);
-  ctx.fillStyle="#0ea5e9";
-  for(let b=0;b<bins;b++){
-    let barLen=(counts[b]/maxCount)*80;
-    let y=plotH-b*binW-binW;
-    ctx.fillRect(0,y,barLen,binW-2);
+
+  const binH = (plotH - 10) / bins;
+  const maxCount = Math.max(...counts);
+
+  ctx.translate(plotW + 30, 0);
+
+  // background box for histogram
+  ctx.fillStyle = "rgba(148, 163, 184, 0.1)";
+  ctx.fillRect(0, 0, 100, plotH);
+
+  // draw bars
+  for (let b = 0; b < bins; b++) {
+    const barLen = (counts[b] / maxCount) * 100;
+    const y = plotH - b * binH - binH;
+    ctx.fillStyle = "rgba(14,165,233,0.8)";
+    ctx.strokeStyle = "rgba(30,41,59,0.6)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(0, y, barLen, binH - 3);
+    ctx.fill();
+    ctx.stroke();
   }
+
+ 
+  ctx.fillStyle = "#64748b";
+  ctx.font = "11px system-ui";
+  ctx.fillText("Histogram of final f(n)", 0, -5);
+
   ctx.restore();
 }
 
