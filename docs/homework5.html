@@ -55,11 +55,11 @@
     .note{border-left:4px solid var(--accent);padding:.9rem 1rem;background:rgba(34,197,94,.08);border-radius:8px}
     .muted{ color: var(--muted) }
 
-    table{ width:100%; border-collapse:separate; border-spacing:0; margin-top:1rem; min-width: 680px }
+    table {min-width: 560px;}
     th,td{padding:.75rem 1rem;border-bottom:1px solid var(--border);text-align:left}
     th{background:var(--primary);color:#fff; position: sticky; top: 0}
     tr:nth-child(even) td{ background: color-mix(in oklab, var(--surface) 92%, #000 0%) }
-    .table-wrap{ overflow:auto; }
+  .table-wrap {overflow-x: auto; width: 100%;}
 
     /* Inputs & chart */
     .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text)}
@@ -275,18 +275,22 @@
     document.getElementById('streamBtn').addEventListener('click',()=>stream(100, randn));
     document.getElementById('uniformBtn').addEventListener('click',()=>stream(100, ()=>Math.random()));
 
-    function renderTable(){
-      if(stats.n===0){ body.innerHTML = '<tr><td colspan="5" class="muted">No data yet.</td></tr>'; return; }
-      const v = stats.sampleVariance();
-      const s = stats.sampleStd();
-      body.innerHTML = `<tr>
-        <td>${stats.n}</td>
-        <td>${stats.mean.toFixed(6)}</td>
-        <td>${stats.M2.toFixed(6)}</td>
-        <td>${Number.isNaN(v)?'—':v.toFixed(6)}</td>
-        <td>${Number.isNaN(s)?'—':s.toFixed(6)}</td>
-      </tr>`;
-    }
+  function renderTable(){
+  if(stats.n===0){
+    body.innerHTML = '<tr><td colspan="5" class="muted">No data yet.</td></tr>';
+    return;
+  }
+  const v = stats.sampleVariance();
+  const s = stats.sampleStd();
+  body.innerHTML = `<tr>
+    <td>${stats.n}</td>
+    <td>${stats.mean.toFixed(6)}</td>
+    <td>${stats.M2.toFixed(6)}</td>
+    <td>${Number.isNaN(v)||stats.n===1 ? '0.000000' : v.toFixed(6)}</td>
+    <td>${Number.isNaN(s)||stats.n===1 ? '0.000000' : s.toFixed(6)}</td>
+  </tr>`;
+}
+
 
     // Chart
     const canvas = document.getElementById('chart');
