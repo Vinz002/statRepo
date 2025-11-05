@@ -39,7 +39,6 @@
     .card{background:var(--surface);border:1px solid var(--border);
       border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem;margin:1.2rem 0;}
     @media (min-width:720px){.card{padding:2rem;}}
-    /* Not sticky, just scrolls normally */
     header.card{
       z-index:5;
       backdrop-filter: blur(6px);
@@ -65,11 +64,9 @@
     tr:nth-child(even) td{ background: color-mix(in oklab, var(--surface) 92%, #000 0%) }
     .table-wrap{ overflow:auto; }
 
-    /* Inputs & chart */
     .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;}
     canvas{width:100%;max-width:760px;height:260px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
-    /* Chart block for clarity and spacing */
     .chart-block {
       box-sizing: border-box;
       width: 100%;
@@ -203,37 +200,44 @@
     <section class="card" id="online">
       <h2>4) Online Algorithms (Interactive)</h2>
       <p class="muted">Type numbers, or stream random samples. The algorithm updates mean and variance in one pass without storing all data.</p>
-      <div class="grid cols-2" style="align-items: flex-start;">
-        <div>
-          <label class="pill" for="xInput">Add a number</label>
-          <div class="toolbar">
-            <input id="xInput" class="input mono" placeholder="e.g., 3.5" />
-            <button class="btn primary" id="addBtn">Add</button>
-            <button class="btn" id="resetBtn">Reset</button>
-          </div>
-          <div class="toolbar" style="margin-top:.6rem">
-            <button class="btn" id="streamBtn">Stream 100 N(0,1)</button>
-            <button class="btn" id="uniformBtn">Stream 100 U(0,1)</button>
-          </div>
+      <div>
+        <label class="pill" for="xInput">Add a number</label>
+        <div class="toolbar">
+          <input id="xInput" class="input mono" placeholder="e.g., 3.5" />
+          <button class="btn primary" id="addBtn">Add</button>
+          <button class="btn" id="resetBtn">Reset</button>
+        </div>
+        <div class="toolbar" style="margin-top:.6rem">
+          <button class="btn" id="streamBtn">Stream 100 N(0,1)</button>
+          <button class="btn" id="uniformBtn">Stream 100 U(0,1)</button>
+        </div>
 
-          <div class="table-wrap">
-            <table style="min-width:560px;margin-top:1rem">
-              <thead>
-                <tr>
-                  <th>n</th>
-                  <th>mean $m_n$</th>
-                  <th>$M2_n$</th>
-                  <th>variance (sample) $s_n^2$</th>
-                  <th>std</th>
-                </tr>
-              </thead>
-              <tbody id="statsBody">
-                <tr><td colspan="5" class="muted">No data yet.</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="table-wrap">
+          <table style="min-width:560px;margin-top:1rem">
+            <thead>
+              <tr>
+                <th>n</th>
+                <th>mean $m_n$</th>
+                <th>$M2_n$</th>
+                <th>variance (sample) $s_n^2$</th>
+                <th>std</th>
+              </tr>
+            </thead>
+            <tbody id="statsBody">
+              <tr><td colspan="5" class="muted">No data yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-          <h3>Implementation (JavaScript)</h3>
+        <!-- CHART BLOCK DIRECTLY BELOW TABLE -->
+        <div class="chart-block">
+          <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
+          <div class="chart-label">
+            Chart shows running mean and &plusmn;1 SD band.
+          </div>
+        </div>
+
+        <h3>Implementation (JavaScript)</h3>
 <pre class="language-javascript"><code>class OnlineStats {
   constructor(){ this.n=0; this.mean=0; this.M2=0; }
   add(x){
@@ -246,16 +250,7 @@
   sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
   sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
 }</code></pre>
-          <p class="note"><strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, and numerically stable — ideal for streams, embedded systems, and large data.</p>
-        </div>
-        <div>
-          <div class="chart-block">
-            <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
-            <div class="chart-label">
-              Chart shows running mean and &plusmn;1 SD band.
-            </div>
-          </div>
-        </div>
+        <p class="note"><strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, and numerically stable — ideal for streams, embedded systems, and large data.</p>
       </div>
     </section>
 
