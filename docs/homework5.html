@@ -39,9 +39,8 @@
     .card{background:var(--surface);border:1px solid var(--border);
       border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem;margin:1.2rem 0;}
     @media (min-width:720px){.card{padding:2rem;}}
-    /* --- REMOVED sticky for header for better usability --- */
+    /* Not sticky, just scrolls normally */
     header.card{
-      /* position: sticky; top:0; */
       z-index:5;
       backdrop-filter: blur(6px);
       background: color-mix(in oklab, var(--surface) 88%, transparent);
@@ -70,11 +69,29 @@
     .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;}
     canvas{width:100%;max-width:760px;height:260px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
-    /* Ensure no overlap: */
-    .grid{display:grid;gap:2.2rem;} /* increased spacing */
+    /* Chart block for clarity and spacing */
+    .chart-block {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 1.1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(80,102,113,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chart-block .chart-label {
+      margin-top: .8rem;
+      color: var(--muted);
+      font-size: 1.02em;
+      text-align: center;
+    }
+    .grid{display:grid;gap:2.2rem;}
     @media (min-width:980px){.grid.cols-2{grid-template-columns:1.05fr .95fr;}}
-    #chart{margin-top: 1.2rem;}
-
+    #chart{margin-top: 0;}
   </style>
 
   <!-- MathJax for formulas -->
@@ -186,7 +203,7 @@
     <section class="card" id="online">
       <h2>4) Online Algorithms (Interactive)</h2>
       <p class="muted">Type numbers, or stream random samples. The algorithm updates mean and variance in one pass without storing all data.</p>
-      <div class="grid cols-2">
+      <div class="grid cols-2" style="align-items: flex-start;">
         <div>
           <label class="pill" for="xInput">Add a number</label>
           <div class="toolbar">
@@ -232,8 +249,12 @@
           <p class="note"><strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, and numerically stable — ideal for streams, embedded systems, and large data.</p>
         </div>
         <div>
-          <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
-          <p class="muted">Chart shows running mean and $\pm 1$ SD band.</p>
+          <div class="chart-block">
+            <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
+            <div class="chart-label">
+              Chart shows running mean and &plusmn;1 SD band.
+            </div>
+          </div>
         </div>
       </div>
     </section>
