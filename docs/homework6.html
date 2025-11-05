@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Location & Dispersion — Concepts, Proofs, and Online Algorithms</title>
+  <meta name="description" content="Measures of location and dispersion with uses, pros/cons, derivations for mean/variance recurrences, and interactive online algorithms (Welford)." />
+
+  <!-- Prism for syntax highlight (same as previous pages) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#f6f7fb; --surface:#ffffff; --text:#0f172a; --muted:#475569;
+      --primary:#0ea5e9; --primary-700:#0369a1; --accent:#22c55e;
+      --border:#e2e8f0; --shadow:0 10px 40px rgba(2,6,23,.08);
+      --radius:16px; --radius-sm:12px; --container:980px;
+      --gradient: linear-gradient(135deg, rgba(56,189,248,.18), rgba(52,211,153,.18));
+    }
+    [data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#0b1220; --surface:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+      --primary:#38bdf8; --primary-700:#0ea5e9; --accent:#34d399;
+      --border:#1f2937; --shadow:0 20px 60px rgba(0,0,0,.45);
+      --gradient: linear-gradient(135deg, rgba(56,189,248,.12), rgba(52,211,153,.12));
+    }
+    *,*:before,*:after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font:16px/1.65 Inter, system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial}
+    .container{max-width:var(--container);margin:0 auto;padding:0 1.2rem}
+    .card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem;margin:1.2rem 0}
+    @media (min-width:720px){.card{padding:2rem}}
+    header.card{ position: sticky; top:0; z-index:5; backdrop-filter: blur(6px);
+      background: color-mix(in oklab, var(--surface) 88%, transparent); }
+    h1,h2{color:var(--primary-700);margin-top:0}
+    .lead{color:var(--muted);font-size:1.05rem;margin:.3rem 0 0}
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+    .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);
+      padding:.55rem .9rem;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
+    .btn.primary{background:var(--primary);color:#fff;border-color:transparent}
+    .pill{display:inline-block;border:1px solid var(--border);padding:.25rem .6rem;
+      border-radius:999px;color:var(--muted);font-size:.85rem;background:var(--surface)}
+    .toc{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:.8rem}
+    .toc a{display:block;background:var(--surface);border:1px solid var(--border);
+      padding:.8rem 1rem;border-radius:12px;text-decoration:none;color:inherit}
+    .note{border-left:4px solid var(--accent);padding:.9rem 1rem;background:rgba(34,197,94,.08);border-radius:8px}
+    .muted{ color: var(--muted) }
+
+    table{ width:100%; border-collapse:separate; border-spacing:0; margin-top:1rem; min-width: 680px }
+    th,td{padding:.75rem 1rem;border-bottom:1px solid var(--border);text-align:left}
+    th{background:var(--primary);color:#fff; position: sticky; top: 0}
+    tr:nth-child(even) td{ background: color-mix(in oklab, var(--surface) 92%, #000 0%) }
+    .table-wrap{ overflow:auto; }
+
+    /* Inputs & chart */
+    .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace}
+    canvas{width:100%;max-width:760px;height:260px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+
+    .grid{display:grid;gap:1.2rem}
+    @media (min-width:980px){.grid.cols-2{grid-template-columns:1.1fr .9fr}}
+  </style>
+
+  <!-- MathJax for formulas -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <div class="toolbar" style="justify-content:space-between">
+        <div>
+          <h1 style="margin:.2rem 0">Measures of Location & Dispersion</h1>
+          <p class="lead">Concepts, use-cases, pros/cons, and proofs with interactive <em>online</em> mean/variance (Welford) — no batch passes.</p>
+        </div>
+        <div class="toolbar">
+          <span class="pill">Light/Dark</span>
+          <button class="btn" id="themeToggle" aria-label="Toggle theme">🌗 Toggle</button>
+          <a class="btn primary" href="#online">Jump to Online Algorithms</a>
+        </div>
+      </div>
+      <nav class="toc">
+        <a href="#concepts">1) Concepts & Taxonomy</a>
+        <a href="#uses">2) Uses, Advantages, Limitations</a>
+        <a href="#proofs">3) Recurrence Proofs (Mean & Variance)</a>
+        <a href="#online">4) Online Algorithms (Interactive)</a>
+        <a href="#extras">5) Extras: Weighted & Robust variants</a>
+      </nav>
+    </header>
+
+    <section class="card" id="concepts">
+      <h2>1) Concepts & Taxonomy</h2>
+      <p>Measures of <strong>location</strong> (or central tendency) describe a typical value; measures of <strong>dispersion</strong> quantify spread around a typical value.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Family</th><th>Measure</th><th>Definition (informal)</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="6"><strong>Location</strong></td><td>Arithmetic mean</td><td>Average of values</td><td>Minimizes squared errors; sensitive to outliers</td></tr>
+            <tr><td>Median</td><td>Middle value (50th percentile)</td><td>Robust to outliers; piecewise-constant under small changes</td></tr>
+            <tr><td>Mode</td><td>Most frequent value</td><td>Can be non-unique; meaningful for discrete/multimodal data</td></tr>
+            <tr><td>Trimmed mean</td><td>Mean after removing extremes</td><td>Trade-off between mean and median</td></tr>
+            <tr><td>Geometric mean</td><td>$\big(\prod x_i\big)^{1/n}$ for $x_i>0$</td><td>For growth rates/ratios; sensitive to zeros</td></tr>
+            <tr><td>Harmonic mean</td><td>$n / \sum (1/x_i)$</td><td>For rates (e.g., speeds); dominated by small values</td></tr>
+            <tr><td rowspan="6"><strong>Dispersion</strong></td><td>Variance</td><td>Mean squared deviation</td><td>In squared units; additive in sums under independence</td></tr>
+            <tr><td>Standard deviation</td><td>$\sqrt{\text{variance}}$</td><td>Same units as data; widely reported</td></tr>
+            <tr><td>Interquartile range (IQR)</td><td>$Q_3-Q_1$</td><td>Robust spread; pairs well with median</td></tr>
+            <tr><td>Median absolute deviation (MAD)</td><td>$\operatorname{median}(|x_i-\operatorname{median}|)$</td><td>Highly robust; use with heavy-tailed/noisy data</td></tr>
+            <tr><td>Range</td><td>$\max-\min$</td><td>Very sensitive to outliers; small-sample volatile</td></tr>
+            <tr><td>Coefficient of variation (CV)</td><td>$\sigma/\mu$</td><td>Scale-free spread (when $\mu>0$)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><strong>Rule of thumb.</strong> Use <em>mean & standard deviation</em> for roughly symmetric, light‑tailed data; use <em>median & IQR/MAD</em> when outliers/heavy tails are expected.</p>
+    </section>
+
+    <section class="card" id="uses">
+      <h2>2) Uses, Advantages, Limitations</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Best for</th><th>Advantages</th><th>Limitations</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Mean</td><td>Symmetric distributions, additive errors</td><td>Efficient estimator; linear; supports algebra (CLT)</td><td>Non-robust to outliers; influenced by skew</td></tr>
+            <tr><td>Median</td><td>Skewed/heavy-tailed data, ordinal data</td><td>Robust; minimises absolute deviations</td><td>Less efficient under normality; not linear</td></tr>
+            <tr><td>Mode</td><td>Discrete/categorical; multimodality detection</td><td>Captures plurality</td><td>Unstable in continuous data without binning</td></tr>
+            <tr><td>Variance / SD</td><td>Measurement noise, ANOVA, regression</td><td>Algebra-friendly; decomposition laws</td><td>Variance in squared units; SD non-robust</td></tr>
+            <tr><td>IQR / MAD</td><td>Exploratory analysis; robust summaries</td><td>Insensitive to extremes</td><td>Less efficient for Gaussian data</td></tr>
+            <tr><td>CV</td><td>Comparing relative variability across scales</td><td>Unitless</td><td>Undefined if mean near 0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="proofs">
+      <h2>3) Recurrence Proofs (Mean & Variance)</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>Mean recurrence</h3>
+          <p>Let $m_n=\dfrac{1}{n}\sum_{i=1}^n x_i$ and $m_{n-1}=\dfrac{1}{n-1}\sum_{i=1}^{n-1} x_i$. Then</p>
+          <p>
+            $$\begin{aligned}
+            m_n &= \frac{1}{n}\Big(\sum_{i=1}^{n-1} x_i + x_n\Big)
+                = \frac{n-1}{n}\,m_{n-1} + \frac{x_n}{n} \\
+                &= m_{n-1} + \frac{x_n - m_{n-1}}{n}. \quad\square
+            \end{aligned}$$
+          </p>
+          <p class="note">Interpretation: move the old mean toward the new sample by a $1/n$ fraction of the error.</p>
+        </div>
+        <div>
+          <h3>Variance (Welford form)</h3>
+          <p>Define $M2_n = \sum_{i=1}^n (x_i - m_n)^2$ (the “sum of squares about the mean”). Then the updates</p>
+          <p>
+            $$\begin{aligned}
+            \delta &= x_n - m_{n-1},\\
+            m_n &= m_{n-1} + \frac{\delta}{n},\\
+            M2_n &= M2_{n-1} + \delta\,(x_n - m_n)
+            \end{aligned}$$
+          </p>
+          <p>follow from expanding $(x_i-m_n)^2$ and using $\sum(x_i-m_n)=0$. Finally, sample variance $s_n^2 = \dfrac{M2_n}{n-1}$ (for $n\ge2$). $\square$</p>
+          <p class="note">This avoids catastrophic cancellation present in $\sum x_i^2 - n m_n^2$ for large $n$.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="online">
+      <h2>4) Online Algorithms (Interactive)</h2>
+      <p class="muted">Type numbers, or stream random samples. The algorithm updates mean and variance in one pass without storing all data.</p>
+      <div class="grid cols-2">
+        <div>
+          <label class="pill" for="xInput">Add a number</label>
+          <div class="toolbar">
+            <input id="xInput" class="input mono" placeholder="e.g., 3.5" />
+            <button class="btn primary" id="addBtn">Add</button>
+            <button class="btn" id="resetBtn">Reset</button>
+          </div>
+          <div class="toolbar" style="margin-top:.6rem">
+            <button class="btn" id="streamBtn">Stream 100 N(0,1)</button>
+            <button class="btn" id="uniformBtn">Stream 100 U(0,1)</button>
+          </div>
+
+          <div class="table-wrap">
+            <table style="min-width:560px;margin-top:1rem">
+              <thead><tr><th>n</th><th>mean $m_n$</th><th>$M2_n$</th><th>variance (sample) $s_n^2$</th><th>std</th></tr></thead>
+              <tbody id="statsBody"><tr><td colspan="5" class="muted">No data yet.</td></tr></tbody>
+            </table>
+          </div>
+
+          <h3>Implementation (JavaScript)</h3>
+<pre class="language-javascript"><code>class OnlineStats {
+  constructor(){ this.n=0; this.mean=0; this.M2=0; }
+  add(x){
+    this.n += 1;
+    const delta = x - this.mean;
+    this.mean += delta / this.n;              // m_n = m_{n-1} + (x - m_{n-1})/n
+    const delta2 = x - this.mean;
+    this.M2 += delta * delta2;                // M2_n = M2_{n-1} + (x - m_{n-1})(x - m_n)
+  }
+  sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
+  sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
+}</code></pre>
+          <p class="note"><strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, and numerically stable — ideal for streams, embedded systems, and large data.</p>
+        </div>
+        <div>
+          <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
+          <p class="muted">Chart shows running mean and $\pm 1$ SD band.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="extras">
+      <h2>5) Extras: Weighted & Robust variants</h2>
+      <ul>
+        <li><strong>Weighted online mean:</strong> $m \leftarrow m + \dfrac{w(x-m)}{W+w}$ with total weight $W$.</li>
+        <li><strong>Exponential moving average (EMA):</strong> $m \leftarrow (1-\alpha)m + \alpha x$ (forgetting factor $\alpha\in(0,1]$).</li>
+        <li><strong>Robust online spread:</strong> track running quantiles (P² algorithm) to estimate median/IQR without storing data.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click',()=>{
+      const cur = root.getAttribute('data-theme')||'light';
+      root.setAttribute('data-theme', cur==='light'?'dark':'light');
+      draw();
+    });
+
+    // Online stats class
+    class OnlineStats {
+      constructor(){ this.n=0; this.mean=0; this.M2=0; }
+      add(x){
+        this.n += 1;
+        const delta = x - this.mean;
+        this.mean += delta / this.n;
+        const delta2 = x - this.mean;
+        this.M2 += delta * delta2;
+      }
+      sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
+      sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
+      reset(){ this.n=0; this.mean=0; this.M2=0; }
+    }
+
+    const stats = new OnlineStats();
+    const body = document.getElementById('statsBody');
+    const xInput = document.getElementById('xInput');
+    document.getElementById('addBtn').addEventListener('click', ()=>{
+      const x = parseFloat(xInput.value);
+      if(Number.isFinite(x)) { stats.add(x); xInput.value=''; renderTable(); draw(); }
+      xInput.focus();
+    });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ stats.reset(); renderTable(); draw(true); });
+
+    // simple RNGs
+    function randn(){
+      // Box-Muller
+      let u=0, v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
+      return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+    }
+    function stream(n, fn){ for(let i=0;i<n;i++){ stats.add(fn()); } renderTable(); draw(); }
+    document.getElementById('streamBtn').addEventListener('click',()=>stream(100, randn));
+    document.getElementById('uniformBtn').addEventListener('click',()=>stream(100, ()=>Math.random()));
+
+    function renderTable(){
+      if(stats.n===0){ body.innerHTML = '<tr><td colspan="5" class="muted">No data yet.</td></tr>'; return; }
+      const v = stats.sampleVariance();
+      const s = stats.sampleStd();
+      body.innerHTML = `<tr>
+        <td>${stats.n}</td>
+        <td>${stats.mean.toFixed(6)}</td>
+        <td>${stats.M2.toFixed(6)}</td>
+        <td>${Number.isNaN(v)?'—':v.toFixed(6)}</td>
+        <td>${Number.isNaN(s)?'—':s.toFixed(6)}</td>
+      </tr>`;
+    }
+
+    // Chart
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    function draw(clearOnly){
+      const w=canvas.width, h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const border = getComputedStyle(document.documentElement).getPropertyValue('--border');
+      const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+      const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-700');
+
+      // axes
+      const left=44, bottom=h-30, right=w-10, top=12;
+      ctx.strokeStyle=border; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
+      ctx.font='11px Inter, system-ui, sans-serif'; ctx.fillStyle=muted; ctx.fillText('n', right-10, h-10);
+
+      if(clearOnly || stats.n===0) return;
+
+      // map n to x
+      const xmax = Math.max(10, stats.n);
+      const xscale = (right-left)/xmax;
+
+      // choose y scale around current mean +/- 3sd or [0,1]
+      const s = stats.sampleStd();
+      let yMin, yMax;
+      if(Number.isFinite(s) && s>0){ yMin = stats.mean - 3*s; yMax = stats.mean + 3*s; }
+      else { yMin = 0; yMax = 1; }
+      if(yMin===yMax){ yMin-=1; yMax+=1; }
+      const yscale = (bottom-top)/(yMax-yMin);
+      const Y = y=> bottom - (y - yMin)*yscale;
+
+      // mean line
+      ctx.strokeStyle = primary; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(left, Y(stats.mean)); ctx.lineTo(right, Y(stats.mean)); ctx.stroke();
+
+      // sd band
+      if(Number.isFinite(s)){
+        ctx.fillStyle = primary; ctx.globalAlpha = .12;
+        ctx.fillRect(left, Y(stats.mean+s), right-left, Math.max(2, Y(stats.mean-s)-Y(stats.mean+s)));
+        ctx.globalAlpha = 1;
+      }
+
+      // ticks
+      ctx.fillStyle=muted; ctx.fillText((yMax).toFixed(2), 6, Y(yMax)+4);
+      ctx.fillText((yMin).toFixed(2), 6, Y(yMin)+4);
+      if(Number.isFinite(s)) ctx.fillText('±1 SD', 6, Y(stats.mean)+4);
+    }
+
+    draw(true);
+  </script>
+</body>
+</html>
