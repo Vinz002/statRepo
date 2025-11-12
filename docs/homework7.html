@@ -192,7 +192,6 @@
         let score = 0;
         let trajectory = [0];
         for (let week = 0; week < n; week++) {
-          // Simulate breach once per week using secure probability
           let breached = Math.random() > q;
           score += breached ? -1 : 1;
           trajectory.push(score);
@@ -203,27 +202,33 @@
       return {trajectories, finalScores, q};
     }
 
-    // Visualization logic
     let trajectoryChart, scoreChart;
     function drawTrajectories(trajectories, n) {
       const ctx = document.getElementById('trajectoryChart').getContext('2d');
-      let samples = trajectories.slice(0, 18); // Only show up to 18 random walks for clarity
+      let samples = trajectories.slice(0, 18); // show at most 18
+      let weekLabels = Array.from({length: samples[0].length}, (_, i) => i); // Weeks 0..n
+
       let datasets = samples.map(traj => ({
         label: '',
-        data: traj.map((y, x) => ({x: x, y: y})),
+        data: traj,
         borderColor: `rgba(14,165,233,0.68)`,
         borderWidth: 2.5,
         pointRadius: 0,
-        fill: false
+        fill: false,
+        tension: 0.08
       }));
+
       if (trajectoryChart) trajectoryChart.destroy();
       trajectoryChart = new Chart(ctx, {
         type: 'line',
-        data: { datasets },
+        data: { 
+          labels: weekLabels,
+          datasets 
+        },
         options: {
           animation: false,
           scales: {
-            x: {title: {display: true, text: 'Week'}, min: 0, max: n, ticks: {font: {size:14}, color: "#e5e7eb"}},
+            x: {title: {display: true, text: 'Week'}, ticks: {font: {size:14}, color: "#e5e7eb"}},
             y: {title: {display: true, text: 'Cumulative Score'}, ticks: {font: {size:15}, color: "#e5e7eb"} }
           },
           plugins: { legend: {display: false}, tooltip: {enabled: false} }
