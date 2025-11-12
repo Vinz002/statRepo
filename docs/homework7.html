@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,14 +9,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg: #f2f6fc;
-      --surface: #fff;
+      --bg: #181c23;
+      --surface: #181c23;
       --accent: #0ea5e9;
-      --text: #1e293b;
-      --muted: #64748b;
-      --border: #e2e8f0;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #223645;
       --radius: 14px;
-      --shadow: 0 6px 32px rgba(56,189,248,0.08);
+      --shadow: 0 6px 32px rgba(56,189,248,0.09);
     }
     body {
       margin: 0;
@@ -53,7 +53,7 @@
       margin: .2em 0;
       border: 1px solid var(--border);
       border-radius: 9px;
-      background: var(--surface);
+      background: #232730;
       color: var(--text);
     }
     label {
@@ -70,7 +70,7 @@
       font-weight: 600;
       cursor: pointer;
       margin: .5em 0;
-      box-shadow: 0 2px 8px rgba(56,189,248,0.09);
+      box-shadow: 0 2px 8px rgba(56,189,248,0.13);
       transition: background .18s;
     }
     button:hover {
@@ -80,26 +80,26 @@
       margin-bottom: 1.3em;
     }
     .chart-container {
-      background: var(--surface);
+      background: #232730;
       padding: 1.3em;
       border-radius: var(--radius);
       border: 1px solid var(--border);
       box-shadow: 0 2px 8px rgba(56,189,248,0.045);
       margin-bottom: 2em;
     }
-    @media (max-width:600px) {
-      .card, .container, .chart-container {
-        padding: .75em;
-      }
-    }
     .note {
-      background: #e6f7fa;
+      background: #223645;
       color: var(--accent);
       border-left: 4px solid var(--accent);
       padding: .7em 1em;
       border-radius: 7px;
       margin: 1em 0;
       font-size: 1.05em;
+    }
+    @media (max-width:600px) {
+      .card, .container, .chart-container {
+        padding: .75em;
+      }
     }
   </style>
 </head>
@@ -125,7 +125,7 @@
         </div>
         <div class="form-group">
           <label for="prob">Probability of breach per attacker (p):</label>
-          <input id="prob" type="number" min="0" max="1" step="0.01" value="0.15">
+          <input id="prob" type="text" step="0.01" value="0.15">
         </div>
         <div class="form-group">
           <label for="runs">Number of simulations:</label>
@@ -187,19 +187,13 @@
     function simulate(n, m, p, runs) {
       let trajectories = [];
       let finalScores = [];
-      let q = 1 - Math.pow(p, m); // Probability NOT breached in a week
-
+      let q = Math.pow(1 - p, m); // Probability NOT breached in a week
       for (let r = 0; r < runs; r++) {
         let score = 0;
         let trajectory = [0];
         for (let week = 0; week < n; week++) {
-          let breached = false;
-          for (let attacker = 0; attacker < m; attacker++) {
-            if (Math.random() < p) {
-              breached = true;
-              break;
-            }
-          }
+          // Simulate breach once per week using secure probability
+          let breached = Math.random() > q;
           score += breached ? -1 : 1;
           trajectory.push(score);
         }
@@ -217,8 +211,8 @@
       let datasets = samples.map(traj => ({
         label: '',
         data: traj.map((y, x) => ({x: x, y: y})),
-        borderColor: `rgba(14,165,233,0.16)`,
-        borderWidth: 2,
+        borderColor: `rgba(14,165,233,0.68)`,
+        borderWidth: 2.5,
         pointRadius: 0,
         fill: false
       }));
@@ -229,8 +223,8 @@
         options: {
           animation: false,
           scales: {
-            x: {title: {display: true, text: 'Week'}, min: 0, max: n, ticks: {font: {size:14}}},
-            y: {title: {display: true, text: 'Cumulative Score'}, ticks: {font: {size:15}} }
+            x: {title: {display: true, text: 'Week'}, min: 0, max: n, ticks: {font: {size:14}, color: "#e5e7eb"}},
+            y: {title: {display: true, text: 'Cumulative Score'}, ticks: {font: {size:15}, color: "#e5e7eb"} }
           },
           plugins: { legend: {display: false}, tooltip: {enabled: false} }
         }
@@ -292,8 +286,8 @@
         },
         options: {
           scales: {
-            x: {title: {display: true, text: 'Final Score'}, ticks: {font: {size:14}}},
-            y: {title: {display: true, text: 'Number of Trajectories'}, ticks: {font: {size:15}}},
+            x: {title: {display: true, text: 'Final Score'}, ticks: {font: {size:14}, color: "#e5e7eb"}},
+            y: {title: {display: true, text: 'Number of Trajectories'}, ticks: {font: {size:15}, color: "#e5e7eb"}},
           },
           plugins: { legend: {display: false}, tooltip: {} }
         }
@@ -305,7 +299,12 @@
       e.preventDefault();
       let n = parseInt(document.getElementById('weeks').value);
       let m = parseInt(document.getElementById('attackers').value);
-      let p = parseFloat(document.getElementById('prob').value);
+      let pRaw = document.getElementById('prob').value.trim();
+      let p = parseFloat(pRaw.replace(',', '.'));
+      if (isNaN(p) || p < 0 || p > 1) {
+        alert("Probability of breach must be a decimal between 0 and 1.");
+        return;
+      }
       let runs = parseInt(document.getElementById('runs').value);
 
       let sim = simulate(n, m, p, runs);
@@ -323,7 +322,8 @@
     (() => {
       let n = parseInt(document.getElementById('weeks').value);
       let m = parseInt(document.getElementById('attackers').value);
-      let p = parseFloat(document.getElementById('prob').value);
+      let pRaw = document.getElementById('prob').value.trim();
+      let p = parseFloat(pRaw.replace(',', '.'));
       let runs = parseInt(document.getElementById('runs').value);
 
       let sim = simulate(n, m, p, runs);
