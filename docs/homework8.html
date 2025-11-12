@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bernoulli Processes, Binomial Connections & Law of Large Numbers — Exploration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #181c23;
+      --surface: #232730;
+      --accent: #0ea5e9;
+      --header: #20a4d9;
+      --muted: #94a3b8;
+      --text: #ebedf6;
+      --border: #25303d;
+      --radius: 15px;
+      --shadow: 0 2px 12px rgba(14,165,233,0.09);
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+    }
+    .container { max-width: 950px; margin: 0 auto; padding: 2.5rem 1.2rem; }
+    h1, h2, h3 { color: var(--header); margin-top: 1.2rem; }
+    .card {
+      background: var(--surface); 
+      border: 1px solid var(--border);
+      border-radius: var(--radius); 
+      box-shadow: var(--shadow);
+      margin-bottom: 2.3em;
+      padding: 2.2em;
+    }
+    .sub { color: var(--muted); font-size: 1.13em; margin-top:.4em; }
+    .highlight { color: var(--accent); font-weight: 600; }
+    .mathnote { color: #22c55e; font-size: 1.05em; margin: .6em 0;}
+    label { font-weight: 600; color: var(--accent);}
+    input { font-size: 1em; padding: .6em; margin: .2em 0;
+      border: 1px solid var(--border); border-radius: 9px; background: #181c23; color: var(--text);}
+    button { font-size: 1em; padding: .7em 1.35em; border-radius: 8px; background: var(--accent);
+      color: #fff; font-weight: 600; cursor: pointer; margin: .7em 0; border: none;}
+    button:hover { background: #0369a1; }
+    .form-group { margin-bottom: 1.3em;}
+    .note { background: #223645; color: var(--accent);
+      border-left: 4px solid var(--accent); padding: .7em 1em; border-radius: 8px; margin: 1em 0;}
+    table { border-collapse: collapse; margin: 1.6em 0; width: 100%; background: #181c23; }
+    th, td { border: 1px solid var(--border); padding: .5em 1em; text-align: left; }
+    th { color: var(--accent); background: #25303d;}
+    .chart-row { display: flex; flex-wrap: wrap; gap: 2.2em; margin-bottom:2.6em;}
+    .chart-cell { flex: 2; min-width:350px; background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border); padding: 1.2em; box-shadow: var(--shadow);}
+    .chart-cell.vert { flex: 1; min-width:260px; display: flex; flex-direction: column; align-items: stretch;}
+    .chart-head { font-weight: 700; color: var(--header); margin-bottom: .9em;}
+    .chart-explain { color: var(--muted); font-size:1.03em; margin-top:1em;}
+    @media (max-width:780px) {
+      .chart-row { flex-direction:column; gap:1.8em;}
+      .card,.container,.chart-cell { padding:1em;}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Analogies & Binomial Structure in Server Security and Law of Large Numbers</h1>
+    <div class="sub">Exploring the deep mathematical connection between Bernoulli random walks, binomial combinatorics, and probabilistic laws.</div>
+    <p>
+      Both the simulated <span class="highlight">server security model</span> (prev. homework) and the <span class="highlight">Law of Large Numbers</span> (LLN) are based on the <b>Bernoulli process</b>: sequences of independent successes (+1, server secure; or positive trial) and failures (−1, server breached; or negative trial).
+      These models are linked by the powerful structure of binomial coefficients (<i>Pascal's triangle</i>), binomial expansions, and, via recurrence, relationships to the <i>Fibonacci sequence</i> and other combinatorial identities.
+    </p>
+    <div class="note">
+      <b>Key Analogy:</b> In both server and LLN simulations, each "step" is a Bernoulli trial. The sum of these steps forms a random walk. The <u>final score</u> and the <u>relative frequency</u> are both determined by the sequence of successes and failures, and their distribution can be derived from binomial formulas.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Simulation: Trajectories & Empirical Distribution (LLN)</h2>
+    <form id="lln-form">
+      <div class="form-group">
+        <label for="lln-n">Number of trials (n):</label>
+        <input id="lln-n" type="number" min="1" max="500" value="50" required>
+      </div>
+      <div class="form-group">
+        <label for="lln-m">Number of trajectories (m):</label>
+        <input id="lln-m" type="number" min="1" max="5000" value="250" required>
+      </div>
+      <div class="form-group">
+        <label for="lln-p">Probability of success (p):</label>
+        <input id="lln-p" type="text" step="0.01" value="0.4">
+      </div>
+      <button type="submit">Run LLN Simulation</button>
+    </form>
+    <div class="chart-row">
+      <div class="chart-cell">
+        <div class="chart-head">Frequency Trajectories (f(n))</div>
+        <canvas id="lln-main" height="290"></canvas>
+        <div class="chart-explain">
+          Each line is a trajectory of relative frequency <b>f(n)</b> over <span id="lln-n-label">50</span> trials.
+        </div>
+      </div>
+      <div class="chart-cell vert">
+        <div class="chart-head">Frequency Histogram</div>
+        <canvas id="lln-hist" height="280"></canvas>
+        <div class="chart-explain">
+          Histogram shows how empirical frequencies <b>f(n)</b> concentrate near theoretical value <b>p</b> as <b>n</b> becomes large.<br>
+          <b>Law of Large Numbers (LLN)</b> in action.
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Binomial, Pascal, and Combinatorics</h2>
+    <table>
+      <tr>
+        <th>Concept</th>
+        <th>Connection/Role</th>
+      </tr>
+      <tr>
+        <td>Binomial Coefficient <span class="mathnote">C(n,k) = n!/(k!(n-k)!)</span></td>
+        <td>Counts how many ways k successes can occur in n trials; forms probability distributions in both models</td>
+      </tr>
+      <tr>
+        <td>Pascal's Triangle</td>
+        <td>Visualizes all binomial coefficients for <i>n</i>; recursive structure encodes the way successes/failures build up across trials and relates to probability distribution shapes</td>
+      </tr>
+      <tr>
+        <td>Binomial Expansion <span class="mathnote">(a+b)<sup>n</sup> = ∑ C(n,k)a<sup>k</sup>b<sup>n−k</sup></span></td>
+        <td>Probability model for outcomes: <i>a</i> = prob(success), <i>b</i> = prob(failure. Expansion coefficients give exact likelihoods of each outcome.</td>
+      </tr>
+      <tr>
+        <td>Fibonacci Sequence</td>
+        <td>Appears in special cases: number of binary strings without consecutive ones, or paths in Pascal’s triangle with certain constraints. More generally, relates to combinatorial recurrences.</td>
+      </tr>
+      <tr>
+        <td>Combinatorial Coefficients</td>
+        <td>Generalizes binomial to multinomial, path counting, and other process statistics—core to understanding distributions and spread in both random walk and LLN context</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Discussion: Similarities & Differences</h2>
+    <ul>
+      <li>
+        <b>Similarities:</b>
+        <ul>
+          <li>Both are based on <u>independent Bernoulli trials</u> (success/failure, secure/breached)</li>
+          <li>Distributions of outcomes (relative frequency, final scores) are described by binomial coefficients and Pascal's triangle</li>
+          <li>Empirical histograms converge to binomial/normal distributions as n grows (Law of Large Numbers)</li>
+          <li>Both can be visualized as random walks, with steps determined by trial outcome</li>
+        </ul>
+      </li>
+      <li>
+        <b>Differences:</b>
+        <ul>
+          <li>LLN focuses on <u>relative frequency</u> (proportion of successes), while random walk tracks <u>cumulative score</u> (+1/−1)</li>
+          <li>The random walk adds/removes points; LLN analysis divides by n to standardize outcomes</li>
+          <li>Server simulation may include complex breach logic (multiple attackers); the classic LLN typically uses a single Bernoulli process</li>
+        </ul>
+      </li>
+    </ul>
+    <div class="note">
+      <b>Mathematical Properties:</b> Both models are pathways to understanding deep properties of randomness, probability, and combinatorics. Binomial coefficients and Pascal's triangle encode not just the probability structure, but beautiful symmetries and algebraic identities.
+    </div>
+  </div>
+</div>
+<script>
+  // --- LLN Simulation & Chart JS ---
+  function llnSim(n, m, p) {
+    const trajectories = [];
+    const finalFreq = [];
+    for (let i = 0; i < m; ++i) {
+      let freq = [];
+      let succ = 0;
+      for (let j = 1; j <= n; ++j) {
+        if (Math.random() < p) succ += 1;
+        freq.push(succ / j);
+      }
+      trajectories.push(freq);
+      finalFreq.push(freq[freq.length - 1]);
+    }
+    return {trajectories, finalFreq};
+  }
+  // --- Draw main frequency trajectories ---
+  let llnChart, llnHistChart;
+  function drawLLNCharts(traj, finalFreq, n, p) {
+    // Trajectories plot
+    const ctx = document.getElementById('lln-main').getContext('2d');
+    let datasets = traj.slice(0, 32).map(freqArray => ({
+      data: freqArray,
+      borderColor: "rgba(32,164,217,0.53)",
+      borderWidth: 2,
+      pointRadius: 0,
+      fill: false,
+      tension: 0.08
+    }));
+    let labels = Array.from({length:n}, (_, i) => i+1);
+    if (llnChart) llnChart.destroy();
+    llnChart = new Chart(ctx, {
+      type: "line",
+      data: { labels, datasets },
+      options: {
+        animation: false,
+        scales: {
+          x: { title: {display:true, text:"Trial #" }, ticks:{color:"#e5e7eb"} },
+          y: { title: {display:true, text:"Frequency of Success (f(n))"}, min:0, max:1, ticks:{color:"#e5e7eb"} }
+        },
+        plugins:{ legend:{display:false} }
+      }
+    });
+
+    // Histogram plot
+    const hctx = document.getElementById('lln-hist').getContext('2d');
+    let bins = Array(20).fill(0);
+    let binLabels = [];
+    for (let i=0; i<20; ++i) {
+      binLabels.push(((i+.5)/20).toFixed(2));
+    }
+    finalFreq.forEach(f => {
+      let bin = Math.min(19, Math.floor(f*20));
+      bins[bin]++;
+    });
+    if (llnHistChart) llnHistChart.destroy();
+    llnHistChart = new Chart(hctx, {
+      type: "bar",
+      data: {
+        labels: binLabels,
+        datasets: [
+          {
+            data: bins,
+            backgroundColor: "rgba(32,164,217,0.29)",
+            borderColor: "rgba(32,164,217,0.72)",
+            borderWidth: 1.5
+          },
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        animation: false,
+        scales: {
+          x: { title: {display:true, text:"Count"}, ticks:{color:"#e5e7eb"}, min:0 },
+          y: { title: {display:true, text:"f(n)"}, ticks:{color:"#e5e7eb"} }
+        },
+        plugins:{ legend:{display:false} }
+      }
+    });
+  }
+
+  // --- Form interaction ---
+  document.getElementById('lln-form').onsubmit = function(e){
+    e.preventDefault();
+    let n = parseInt(document.getElementById('lln-n').value);
+    let m = parseInt(document.getElementById('lln-m').value);
+    let pRaw = document.getElementById('lln-p').value.trim();
+    let p = parseFloat(pRaw.replace(",","."));
+    document.getElementById('lln-n-label').innerText = n;
+    let sim = llnSim(n,m,p);
+    drawLLNCharts(sim.trajectories, sim.finalFreq, n, p);
+  };
+
+  // --- Initial draw ---
+  (() => {
+    let n = parseInt(document.getElementById('lln-n').value);
+    let m = parseInt(document.getElementById('lln-m').value);
+    let pRaw = document.getElementById('lln-p').value.trim();
+    let p = parseFloat(pRaw.replace(",","."));
+    document.getElementById('lln-n-label').innerText = n;
+    let sim = llnSim(n,m,p);
+    drawLLNCharts(sim.trajectories, sim.finalFreq, n, p);
+  })();
+</script>
+</body>
+</html>
