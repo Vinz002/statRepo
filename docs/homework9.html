@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Probability Theory: Interpretations, Axioms & Measure Theory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #19202b;
+      --surface: #242634;
+      --accent: #42b6e9;
+      --header: #2d90bc;
+      --muted: #8da3bb;
+      --text: #eaf3fa;
+      --border: #283246;
+      --radius: 14px;
+      --shadow: 0 2px 18px rgba(66,182,233,0.08);
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+    .container { max-width: 900px; margin: 0 auto; padding: 2.3em 1em; }
+    .card {
+      background: var(--surface); 
+      border: 1px solid var(--border);
+      border-radius: var(--radius); 
+      box-shadow: var(--shadow);
+      margin-bottom: 2em;
+      padding: 2em;
+    }
+    h1, h2, h3 { color: var(--header); margin-top:1em; }
+    .sub { color: var(--muted); font-size:1.09em; margin-top:.6em; margin-bottom:1.2em; }
+    .note { background: #283246; color: var(--accent); border-left: 4px solid var(--accent); padding: .8em 1.1em; border-radius: 8px; font-size:1.06em; margin:1.2em 0;}
+    table { border-collapse: collapse; margin: 1.3em 0; width: 100%; background: #242634; }
+    th, td { border: 1px solid var(--border); padding: .6em 1em; text-align: left;}
+    th { color: var(--accent); background:#283246;}
+    code, .formula { background: #181c25; color: var(--accent); font-weight:600; border-radius:6px; padding:2px 6px;}
+    ul { margin-left:1.6em;}
+    li { margin-bottom: .4em;}
+    @media (max-width:750px){
+      .container,.card { padding:1em;}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Probability Theory: Interpretations, Axioms, and Measure Connections</h1>
+    <div class="sub">
+      The frameworks for probability—classical, frequentist, Bayesian, and more—reflect different ways to reason about uncertainty. The axiomatic approach reconciles their differences within a precise mathematical structure.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Main Interpretations of Probability</h2>
+    <table>
+      <tr>
+        <th>Interpretation</th>
+        <th>Idea</th>
+        <th>Example</th>
+      </tr>
+      <tr>
+        <td><b>Classical</b></td>
+        <td>Probability is the ratio of favorable outcomes to total possible outcomes, assuming symmetry.</td>
+        <td>Tossing a fair die: P(2) = 1/6</td>
+      </tr>
+      <tr>
+        <td><b>Frequentist</b></td>
+        <td>Probability is the long-run relative frequency in repeated identical trials.</td>
+        <td>Flipping a coin repeatedly: P(heads) ≈ proportion of heads over many flips.</td>
+      </tr>
+      <tr>
+        <td><b>Bayesian</b></td>
+        <td>Probability measures degrees of belief, updated via new evidence using Bayes’ theorem.</td>
+        <td>Evaluating the chance it rains tomorrow, given meteorological data.</td>
+      </tr>
+      <tr>
+        <td><b>Geometric</b></td>
+        <td>Probability is interpreted as a fraction of length/area/volume—useful for continuous spaces.</td>
+        <td>P(random dart hits shaded region) = shaded area / total area.</td>
+      </tr>
+    </table>
+    <div class="note">
+      <b>Conceptual Inconsistencies:</b> Classical requires symmetric, finite sample spaces; frequentist needs repeatability; Bayesian involves subjective beliefs. Each can struggle with certain paradoxes (e.g. Bertrand's paradox in geometry, singular events in frequentist thinking, objectivity in subjective priors).
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Axiomatic Probability & Unification</h2>
+    <p>
+      The <b>axiomatic approach</b> (Kolmogorov, 1933) uses set theory and measure theory to define probability abstractly and consistently:
+    </p>
+    <ul>
+      <li><b>Sample space (<span class="formula">&Omega;</span>):</b> the set of all possible outcomes.</li>
+      <li><b>Sigma-algebra (<span class="formula">&Sigma;</span>):</b> a collection of subsets ("events") closed under complementation and countable unions.</li>
+      <li><b>Probability measure (<span class="formula">P</span>):</b> a function assigning each event a number in [0,1], satisfying the axioms.</li>
+      <li><b>Random variable:</b> a measurable function from &Omega; to the real numbers, linking "events" to real values for analysis.</li>
+    </ul>
+    <div class="note">
+      <b>Resolution of inconsistencies:</b> The axiomatic model allows any "reasonable" event (including infinite/sample spaces, subjective/belief components, and continuous cases), subsuming classical, frequentist, Bayesian, geometric, and other perspectives into a unified system.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Relationship: Probability and Measure Theory</h2>
+    <ul>
+      <li><b>Probability measure:</b> A special case of a measure, assigning "size" to events so that measure of &Omega; is 1.</li>
+      <li><b>Sigma-algebra (&Sigma;):</b> Structure ensuring events can be combined/compared consistently.</li>
+      <li><b>Measurable function:</b> Any function whose pre-image of Borel sets is an event in &Sigma;—random variables qualify.</li>
+    </ul>
+    <div class="note">
+      <b>Key Insight:</b> Probability theory is measure theory with extra structure: measures are "probabilities", random variables are measurable, and set operations yield probabilistic laws.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Derivations: Subadditivity & Inclusion–Exclusion Principle</h2>
+    <h3>Axioms of Probability</h3>
+    <ul>
+      <li><b>Non-negativity:</b> <span class="formula">P(A) \ge 0</span> for every event A.</li>
+      <li><b>Normalization:</b> <span class="formula">P(\Omega) = 1</span>.</li>
+      <li><b>Countable Additivity:</b> For disjoint events A<sub>1</sub>, A<sub>2</sub>,..., <span class="formula">P(\bigcup_{i=1}^\infty A_i) = \sum_{i=1}^\infty P(A_i)</span>.</li>
+    </ul>
+    <div class="mathnote">
+      <b>Subadditivity:</b> For any events A, B:<br>
+      <span class="formula">P(A \cup B) \le P(A) + P(B)</span>
+    </div>
+    <p>
+      <b>Proof:</b> For arbitrary events, decomposition yields (since intersection may have positive probability):<br>
+      <span class="formula">P(A \cup B) = P(A) + P(B) - P(A \cap B)</span>
+      <br>Thus <span class="formula">P(A \cup B) \le P(A) + P(B)</span> (since <span class="formula">P(A \cap B) \ge 0</span>)
+    </p>
+    <div class="mathnote">
+      <b>Inclusion–Exclusion Principle:</b> For any (finite) family A<sub>1</sub>,...,A<sub>n</sub>:<br>
+      <span class="formula">
+      P\left(\bigcup_{i=1}^n A_i\right) = \sum_{i} P(A_i) 
+      - \sum_{i < j} P(A_i \cap A_j) 
+      + \sum_{i < j < k} P(A_i \cap A_j \cap A_k) 
+      - \cdots + (-1)^{n+1} P(A_1 \cap A_2 \cap \cdots \cap A_n)
+      </span>
+    </div>
+    <p>
+      <b>Derivation (for 2 events):</b><br>
+      <span class="formula">P(A \cup B) = P(A) + P(B) - P(A \cap B)</span>
+      <br>
+      <b>(for 3 events):</b><br>
+      <span class="formula">
+        P(A \cup B \cup C) = P(A) + P(B) + P(C) 
+        - P(A \cap B) - P(A \cap C) - P(B \cap C)
+        + P(A \cap B \cap C)
+      </span>
+    </p>
+  </div>
+  <div class="card">
+    <h2>Summary: Why the Axiomatic Approach Matters</h2>
+    <ul>
+      <li>Generalizes and reconciles differing interpretations of probability</li>
+      <li>Handles infinite, continuous, subjective, and complex events</li>
+      <li>Connects probability to broad mathematical ideas (measure, integration, analysis)</li>
+      <li>Ensures powerful properties (subadditivity, inclusion–exclusion, laws of probability) naturally arise from the axioms</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
