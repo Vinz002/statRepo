@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulating a Counting Process</title>
+
+  <!-- MathJax for formulas -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg: #111827;
+      --bg-alt: #1f2937;
+      --accent: #3b82f6;
+      --card-bg: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148,163,184,0.2);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 24px 60px rgba(15,23,42,0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0%, #111827 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.95));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148,163,184,0.4);
+      backdrop-filter: blur(24px);
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 3vw, 40px);
+      margin: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    nav {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      color: var(--muted);
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.3);
+      transition: all 0.2s ease;
+    }
+
+    nav a:hover {
+      background: var(--accent);
+      color: #f3f4f6;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    section {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    section h3 {
+      margin-top: 16px;
+      font-size: 20px;
+    }
+
+    p, ul {
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .formula-box {
+      background: rgba(15,23,42,0.8);
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.3);
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .example-code {
+      font-family: 'Courier New', Courier, monospace;
+      background: rgba(15,23,42,0.9);
+      color: #f3f4f6;
+      padding: 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Simulating a Counting Process</h1>
+      <p class="subtitle">
+        In this exercise, we simulate a counting process over a time interval, where events occur independently and uniformly in time at a constant average rate λ.
+      </p>
+      <nav>
+        <a href="#simulation">Simulation Process</a>
+        <a href="#stochastic-process">Stochastic Process</a>
+        <a href="#theoretical">Theoretical Analysis</a>
+        <a href="#interpretation">Interpretation of λ</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="simulation">
+        <h2>1. Simulating the Counting Process</h2>
+        <p>
+          We simulate a counting process over a time interval \( T \), where events occur independently and uniformly at a constant average rate \( \lambda \). The idea is to divide the time interval \( T \) into \( n \) small subintervals and generate an event in each subinterval with probability \( \lambda / n \).
+        </p>
+        
+        <h3>1.1. Simulation Steps</h3>
+        <p>
+          For simplicity, let's set the interval length \( T = 1 \) and the number of subintervals \( n = 5000 \). Here's the simulation process in Python:
+        </p>
+
+        <div class="example-code">
+          <pre>
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+lambda_rate = 0.1  # average rate of events (lambda)
+T = 1              # time interval
+n = 5000           # number of subintervals
+
+# Simulate the process
+time_intervals = np.linspace(0, T, n+1)
+events = np.random.rand(n) < lambda_rate / n
+
+# Plotting the results
+plt.step(time_intervals[:-1], np.cumsum(events), where="post", color="blue", label="Counting Process")
+plt.xlabel("Time")
+plt.ylabel("Cumulative Events")
+plt.title(f"Simulated Counting Process with λ = {lambda_rate}")
+plt.grid(True)
+plt.show()
+          </pre>
+        </div>
+
+        <p>
+          In this simulation, the events are generated using the `rand` function, which generates random numbers between 0 and 1. If the random number is less than \( \lambda / n \), an event is considered to occur in that subinterval.
+        </p>
+      </section>
+
+      <section id="stochastic-process">
+        <h2>2. Stochastic Process Approximation</h2>
+        <p>
+          The process we've simulated can be viewed as an approximation of a Poisson process. In the limit, as \( n \) becomes large, this discrete counting process converges to a continuous Poisson process, where the events occur randomly in time with a constant rate \( \lambda \).
+        </p>
+
+        <h3>2.1. The Poisson Process</h3>
+        <p>
+          The Poisson process is a type of stochastic process that models the number of events occurring in a fixed time interval, where the events happen independently and with a constant rate. The key properties of the Poisson process are:
+        </p>
+        <ul>
+          <li>The number of events in a disjoint time interval is independent of the number of events in any other interval.</li>
+          <li>The number of events in a time interval of length \( T \) follows a Poisson distribution with parameter \( \lambda T \).</li>
+          <li>The rate of events is constant, i.e., the expected number of events per unit time is \( \lambda \).</li>
+        </ul>
+        <p>
+          As \( n \) increases, the discrete approximation of the process (with small subintervals) closely matches the behavior of a Poisson process.
+        </p>
+      </section>
+
+      <section id="theoretical">
+        <h2>3. Theoretical Properties of the Process</h2>
+        <p>
+          The process we are simulating has the following theoretical properties:
+        </p>
+
+        <h3>3.1. Poisson Distribution</h3>
+        <p>
+          As mentioned earlier, the number of events in a time interval \( T \) follows a Poisson distribution:
+          $$ P(N(T) = k) = \frac{(\lambda T)^k e^{-\lambda T}}{k!}, \quad k = 0, 1, 2, \dots $$
+          where \( N(T) \) is the number of events observed in the time interval \( T \).
+        </p>
+
+        <h3>3.2. Independence of Events</h3>
+        <p>
+          In the Poisson process, the events are independent. This means that the occurrence of an event in one interval does not affect the occurrence of events in other intervals. This property holds in our simulated process as well.
+        </p>
+
+        <h3>3.3. The Rate Parameter \( \lambda \)</h3>
+        <p>
+          The rate parameter \( \lambda \) controls the expected number of events per unit time. If \( \lambda = 0.1 \), we expect 0.1 events to occur in each unit of time. As \( \lambda \) increases, the number of events occurring in the time interval increases.
+        </p>
+        <p>
+          The rate parameter also determines the mean and variance of the number of events in any time interval \( T \):
+          $$ \mathbb{E}[N(T)] = \lambda T \quad \text{and} \quad \text{Var}(N(T)) = \lambda T.$$
+        </p>
+      </section>
+
+      <section id="interpretation">
+        <h2>4. Interpreting the Rate Parameter \( \lambda \)</h2>
+        <p>
+          The rate parameter \( \lambda \) represents the expected number of events per unit time. In our simulation, if \( \lambda = 0.1 \), it means that, on average, we expect 0.1 events to occur per unit time. In the limit, this becomes a continuous Poisson process, where events are spread randomly across the time interval with rate \( \lambda \).
+        </p>
+
+        <p>
+          If we increase \( \lambda \), the number of events occurring per unit time increases, making the process more event-rich. Conversely, decreasing \( \lambda \) results in fewer events over the same time interval.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Probability Simulation Homework</p>
+    </footer>
+  </div>
+</body>
+</html>
