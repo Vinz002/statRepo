@@ -1,164 +1,857 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <title>Probability: Interpretations, Axioms & Measure Theory</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Probability Theory: Interpretations, Axioms & Measure Theory</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- MathJax for formulas -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
     :root {
-      --bg: #19202b;
-      --surface: #242634;
-      --accent: #42b6e9;
-      --header: #2d90bc;
-      --muted: #8da3bb;
-      --text: #eaf3fa;
-      --border: #283246;
-      --radius: 14px;
-      --shadow: 0 2px 18px rgba(66,182,233,0.08);
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card-bg: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.12);
+      --accent-strong: #0ea5e9;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148,163,184,0.3);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 24px 60px rgba(15,23,42,0.7);
     }
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
-    .container { max-width: 900px; margin: 0 auto; padding: 2.3em 1em; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1040px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.97));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148,163,184,0.4);
+      backdrop-filter: blur(24px);
+      padding: 32px 22px 36px;
+    }
+
+    @media (min-width: 768px) {
+      .page {
+        padding: 32px 40px 40px;
+      }
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.95);
+      color: var(--muted);
+      font-size: 12px;
+      width: fit-content;
+    }
+
+    .badge-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8 45%, #0f172a 75%);
+      box-shadow: 0 0 18px rgba(56,189,248,0.9);
+      border: 1px solid rgba(56,189,248,0.7);
+    }
+
+    h1 {
+      font-size: clamp(28px, 3vw, 34px);
+      margin: 0;
+      letter-spacing: 0.02em;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.4ch;
+    }
+
+    h1 span.highlight {
+      background: linear-gradient(120deg, var(--accent), #f472b6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 620px;
+      line-height: 1.5;
+    }
+
+    /* Navigation pills */
+    nav {
+      margin: 16px 0 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid rgba(148,163,184,0.35);
+      background: rgba(15,23,42,0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+        transform 0.1s ease;
+    }
+
+    nav a span.dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.65;
+    }
+
+    nav a:hover {
+      background: rgba(15,23,42,1);
+      color: #e5e7eb;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    nav a.active {
+      background: var(--accent-soft);
+      color: #e5e7eb;
+      border-color: var(--accent-strong);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      margin-top: 8px;
+    }
+
+    section {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent 50%),
+                  radial-gradient(circle at bottom right, rgba(248,113,113,0.04), transparent 55%),
+                  var(--card-bg);
+      padding: 18px 16px 18px;
+    }
+
+    @media (min-width: 768px) {
+      section {
+        padding: 20px 22px 22px;
+      }
+    }
+
+    section h2 {
+      margin-top: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    section h2::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8 60%, #0f172a 90%);
+      opacity: 0.85;
+      border: 1px solid rgba(56,189,248,0.9);
+      box-shadow: 0 0 16px rgba(56,189,248,0.6);
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin: 4px 0 8px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 6px 0 6px 18px;
+      padding: 0;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    li + li {
+      margin-top: 2px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    @media (min-width: 800px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
     .card {
-      background: var(--surface); 
-      border: 1px solid var(--border);
-      border-radius: var(--radius); 
-      box-shadow: var(--shadow);
-      margin-bottom: 2em;
-      padding: 2em;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.45);
+      background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(15,23,42,0.99));
+      padding: 10px 11px;
+      font-size: 13px;
+      position: relative;
+      overflow: hidden;
     }
-    h1, h2, h3 { color: var(--header); margin-top:1em; }
-    .sub { color: var(--muted); font-size:1.09em; margin-top:.6em; margin-bottom:1.2em; }
-    .note { background: #283246; color: var(--accent); border-left: 4px solid var(--accent); padding: .8em 1.1em; border-radius: 8px; font-size:1.06em; margin:1.2em 0;}
-    table { border-collapse: collapse; margin: 1.3em 0; width: 100%; background: #242634; }
-    th, td { border: 1px solid var(--border); padding: .6em 1em; text-align: left;}
-    th { color: var(--accent); background:#283246;}
-    code, .formula { background: #181c25; color: var(--accent); font-weight:600; border-radius:6px; padding:2px 6px;}
-    ul { margin-left:1.6em;}
-    li { margin-bottom: .4em;}
-    @media (max-width:750px){
-      .container,.card { padding:1em;}
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(56,189,248,0.23), transparent 55%);
+      opacity: 0.5;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -4px;
+      margin-bottom: 4px;
+    }
+
+    .formula-box {
+      border-radius: 14px;
+      border: 1px dashed rgba(148,163,184,0.7);
+      background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,1));
+      padding: 10px 12px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+        "Courier New", monospace;
+      font-size: 12px;
+      background: rgba(15,23,42,0.9);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: #e5e7eb;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.96);
+      color: var(--muted);
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Small “scroll to top” floating button */
+    .top-btn {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: radial-gradient(circle at 30% 30%, #e0f2fe, #0ea5e9 50%, #0f172a 100%);
+      color: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(15,23,42,0.9);
+      text-decoration: none;
+      z-index: 30;
+    }
+
+    .top-btn span {
+      transform: translateY(1px);
+    }
+
+    @media (max-width: 640px) {
+      .top-btn {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="card">
-    <h1>Probability Theory: Interpretations, Axioms, and Measure Connections</h1>
-    <div class="sub">
-      The frameworks for probability—classical, frequentist, Bayesian, and more—reflect different ways to reason about uncertainty. The axiomatic approach reconciles their differences within a precise mathematical structure.
-    </div>
-  </div>
+  <a href="#top" class="top-btn" aria-label="Back to top">
+    <span>↑</span>
+  </a>
+  <div class="page" id="top">
+    <header>
+      <div class="badge">
+        <div class="badge-dot"></div>
+        Probability Theory · Homework Summary
+      </div>
+      <h1>
+        <span class="highlight">Probability</span>
+        interpretations, axioms & measure theory
+      </h1>
+      <p class="subtitle">
+        Overview of the main interpretations of probability and how the axiomatic approach
+        reconciles them, the link with measure theory, and derivations of subadditivity and
+        the inclusion–exclusion principle from the axioms.
+      </p>
+      <nav>
+        <a href="#interpretations" class="active">
+          <span class="dot"></span> Interpretations
+        </a>
+        <a href="#axiomatic">
+          <span class="dot"></span> Axiomatic framework
+        </a>
+        <a href="#measure-theory">
+          <span class="dot"></span> Measure theory link
+        </a>
+        <a href="#derivations">
+          <span class="dot"></span> Axiomatic derivations
+        </a>
+      </nav>
+    </header>
 
-  <div class="card">
-    <h2>Main Interpretations of Probability</h2>
-    <table>
-      <tr>
-        <th>Interpretation</th>
-        <th>Idea</th>
-        <th>Example</th>
-      </tr>
-      <tr>
-        <td><b>Classical</b></td>
-        <td>Probability is the ratio of favorable outcomes to total possible outcomes, assuming symmetry.</td>
-        <td>Tossing a fair die: P(2) = 1/6</td>
-      </tr>
-      <tr>
-        <td><b>Frequentist</b></td>
-        <td>Probability is the long-run relative frequency in repeated identical trials.</td>
-        <td>Flipping a coin repeatedly: P(heads) ≈ proportion of heads over many flips.</td>
-      </tr>
-      <tr>
-        <td><b>Bayesian</b></td>
-        <td>Probability measures degrees of belief, updated via new evidence using Bayes’ theorem.</td>
-        <td>Evaluating the chance it rains tomorrow, given meteorological data.</td>
-      </tr>
-      <tr>
-        <td><b>Geometric</b></td>
-        <td>Probability is interpreted as a fraction of length/area/volume—useful for continuous spaces.</td>
-        <td>P(random dart hits shaded region) = shaded area / total area.</td>
-      </tr>
-    </table>
-    <div class="note">
-      <b>Conceptual Inconsistencies:</b> Classical requires symmetric, finite sample spaces; frequentist needs repeatability; Bayesian involves subjective beliefs. Each can struggle with certain paradoxes (e.g. Bertrand's paradox in geometry, singular events in frequentist thinking, objectivity in subjective priors).
-    </div>
-  </div>
+    <main>
+      <!-- INTERPRETATIONS -->
+      <section id="interpretations">
+        <h2>1. Main interpretations of probability</h2>
+        <p>
+          “Probability” can be understood in several ways. Different interpretations try to
+          answer the question: <em>what does a probability value actually mean?</em>
+        </p>
 
-  <div class="card">
-    <h2>Axiomatic Probability & Unification</h2>
-    <p>
-      The <b>axiomatic approach</b> (Kolmogorov, 1933) uses set theory and measure theory to define probability abstractly and consistently:
-    </p>
-    <ul>
-      <li><b>Sample space (<span class="formula">&Omega;</span>):</b> the set of all possible outcomes.</li>
-      <li><b>Sigma-algebra (<span class="formula">&Sigma;</span>):</b> a collection of subsets ("events") closed under complementation and countable unions.</li>
-      <li><b>Probability measure (<span class="formula">P</span>):</b> a function assigning each event a number in [0,1], satisfying the axioms.</li>
-      <li><b>Random variable:</b> a measurable function from &Omega; to the real numbers, linking "events" to real values for analysis.</li>
-    </ul>
-    <div class="note">
-      <b>Resolution of inconsistencies:</b> The axiomatic model allows any "reasonable" event (including infinite/sample spaces, subjective/belief components, and continuous cases), subsuming classical, frequentist, Bayesian, geometric, and other perspectives into a unified system.
-    </div>
-  </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>
+              Classical interpretation
+              <span class="chip">Laplace</span>
+            </h3>
+            <p class="tagline">
+              Probability as a ratio of equally likely cases.
+            </p>
+            <ul>
+              <li>
+                For a finite sample space with equally likely outcomes,
+                $$P(A) = \dfrac{\text{number of favorable cases}}{\text{number of possible cases}}.$$
+              </li>
+              <li>
+                Works well for symmetric games of chance (dice, cards, coins).
+              </li>
+              <li>
+                Limitations: depends on the notion of “equally likely,” which is vague and
+                circular (“equally likely” often means “same probability”); hard to apply to
+                infinite or continuous spaces.
+              </li>
+            </ul>
+          </div>
 
-  <div class="card">
-    <h2>Relationship: Probability and Measure Theory</h2>
-    <ul>
-      <li><b>Probability measure:</b> A special case of a measure, assigning "size" to events so that measure of &Omega; is 1.</li>
-      <li><b>Sigma-algebra (&Sigma;):</b> Structure ensuring events can be combined/compared consistently.</li>
-      <li><b>Measurable function:</b> Any function whose pre-image of Borel sets is an event in &Sigma;—random variables qualify.</li>
-    </ul>
-    <div class="note">
-      <b>Key Insight:</b> Probability theory is measure theory with extra structure: measures are "probabilities", random variables are measurable, and set operations yield probabilistic laws.
-    </div>
-  </div>
+          <div class="card">
+            <h3>
+              Frequentist interpretation
+              <span class="chip">long-run frequency</span>
+            </h3>
+            <p class="tagline">
+              Probability as limiting relative frequency in repeated trials.
+            </p>
+            <ul>
+              <li>
+                Consider repeated independent trials in identical conditions. The probability
+                of an event $A$ is the limit of the relative frequency:
+                $$P(A) \approx \frac{\text{number of times } A \text{ occurs}}{\text{number of trials}}.$$
+              </li>
+              <li>
+                Strong connection to statistical practice and empirical data.
+              </li>
+              <li>
+                Limitations: speaks about the limit as the number of trials tends to infinity;
+                problematic for single events (e.g. “probability that this particular patient
+                recovers”).
+              </li>
+            </ul>
+          </div>
 
-  <div class="card">
-    <h2>Derivations: Subadditivity & Inclusion–Exclusion Principle</h2>
-    <h3>Axioms of Probability</h3>
-    <ul>
-      <li><b>Non-negativity:</b> <span class="formula">P(A) \ge 0</span> for every event A.</li>
-      <li><b>Normalization:</b> <span class="formula">P(\Omega) = 1</span>.</li>
-      <li><b>Countable Additivity:</b> For disjoint events A<sub>1</sub>, A<sub>2</sub>,..., <span class="formula">P(\bigcup_{i=1}^\infty A_i) = \sum_{i=1}^\infty P(A_i)</span>.</li>
-    </ul>
-    <div class="mathnote">
-      <b>Subadditivity:</b> For any events A, B:<br>
-      <span class="formula">P(A \cup B) \le P(A) + P(B)</span>
-    </div>
-    <p>
-      <b>Proof:</b> For arbitrary events, decomposition yields (since intersection may have positive probability):<br>
-      <span class="formula">P(A \cup B) = P(A) + P(B) - P(A \cap B)</span>
-      <br>Thus <span class="formula">P(A \cup B) \le P(A) + P(B)</span> (since <span class="formula">P(A \cap B) \ge 0</span>)
-    </p>
-    <div class="mathnote">
-      <b>Inclusion–Exclusion Principle:</b> For any (finite) family A<sub>1</sub>,...,A<sub>n</sub>:<br>
-      <span class="formula">
-      P\left(\bigcup_{i=1}^n A_i\right) = \sum_{i} P(A_i) 
-      - \sum_{i < j} P(A_i \cap A_j) 
-      + \sum_{i < j < k} P(A_i \cap A_j \cap A_k) 
-      - \cdots + (-1)^{n+1} P(A_1 \cap A_2 \cap \cdots \cap A_n)
-      </span>
-    </div>
-    <p>
-      <b>Derivation (for 2 events):</b><br>
-      <span class="formula">P(A \cup B) = P(A) + P(B) - P(A \cap B)</span>
-      <br>
-      <b>(for 3 events):</b><br>
-      <span class="formula">
-        P(A \cup B \cup C) = P(A) + P(B) + P(C) 
-        - P(A \cap B) - P(A \cap C) - P(B \cap C)
-        + P(A \cap B \cap C)
-      </span>
-    </p>
+          <div class="card">
+            <h3>
+              Bayesian interpretation
+              <span class="chip">degree of belief</span>
+            </h3>
+            <p class="tagline">
+              Probability as a rational, coherent measure of uncertainty.
+            </p>
+            <ul>
+              <li>
+                Probability quantifies a subject’s <em>degree of belief</em> in a proposition,
+                given the available information.
+              </li>
+              <li>
+                Prior beliefs are updated using Bayes’ theorem as new data arrive:
+                $$P(H \mid D) = \frac{P(D \mid H)P(H)}{P(D)}.$$
+              </li>
+              <li>
+                Coherence is enforced via Dutch-book arguments: if your probabilities violate
+                the axioms, you can be made to accept sure-loss bets.
+              </li>
+              <li>
+                Criticisms: subjectivity in choosing priors; different agents can assign
+                different probabilities to the same event.
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>
+              Geometric (or uniform) interpretation
+              <span class="chip">continuous symmetry</span>
+            </h3>
+            <p class="tagline">
+              Probability as normalized measure over a geometric region.
+            </p>
+            <ul>
+              <li>
+                For a point uniformly chosen in a region $S$ (e.g. an interval or area),
+                $$P(A) = \dfrac{\text{measure}(A)}{\text{measure}(S)}.$$
+              </li>
+              <li>
+                Generalizes classical equiprobability to continuous spaces using length, area
+                or volume.
+              </li>
+              <li>
+                Relies on choosing an appropriate underlying measure (e.g. Lebesgue measure),
+                and can lead to paradoxes if symmetry assumptions are naive (e.g. Bertrand’s
+                paradox).
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="note">
+          Other interpretations exist (propensity, logical, etc.), but these four are the
+          central ones required here.
+        </p>
+      </section>
+
+      <!-- AXIOMATIC FRAMEWORK -->
+      <section id="axiomatic">
+        <h2>2. Axiomatic probability and conceptual unification</h2>
+        <p>
+          Kolmogorov’s axiomatic approach (1933) abstracts away from the specific
+          interpretation and treats probability as a set function with certain properties.
+          This makes the theory mathematically precise and flexible enough to accommodate
+          different interpretations.
+        </p>
+
+        <h3>2.1. The axioms</h3>
+        <p>
+          A probability space is a triple $(\Omega, \mathcal{F}, P)$, where $\Omega$ is the
+          sample space, $\mathcal{F}$ is a collection of events, and $P$ is a function
+          assigning probabilities to events. Kolmogorov’s axioms are:
+        </p>
+
+        <div class="formula-box">
+          <ul>
+            <li>
+              <strong>A1 (Non-negativity)</strong>:
+              $$P(A) \ge 0 \quad \text{for every } A \in \mathcal{F}.$$
+            </li>
+            <li>
+              <strong>A2 (Normalization)</strong>:
+              $$P(\Omega) = 1.$$
+            </li>
+            <li>
+              <strong>A3 (Countable additivity)</strong>:<br />
+              For any countable sequence of <em>pairwise disjoint</em> events
+              $(A_i)_{i\ge1}$,
+              $$P\Big(\bigcup_{i=1}^\infty A_i\Big) = \sum_{i=1}^\infty P(A_i).$$
+            </li>
+          </ul>
+        </div>
+
+        <h3>2.2. How the axioms reconcile different interpretations</h3>
+        <p>
+          The axioms themselves are <em>interpretation-neutral</em>. Different philosophies
+          of probability correspond to different ways of justifying $P$ and relating it to
+          the real world:
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Classical & geometric</h3>
+            <p>
+              Classical and geometric probability become special cases where $\Omega$ is
+              finite or a geometric set, and $P$ is defined by a uniform measure:
+              $P(A) = \frac{\mu(A)}{\mu(\Omega)}$ for some measure $\mu$. The axioms ensure
+              additivity and consistency without appealing directly to “equally likely
+              outcomes.”
+            </p>
+            <p>
+              Conceptual issues (e.g. “what does equally likely mean?”) are shifted from the
+              probability calculus itself to the modeling choice of $\mu$.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Frequentist</h3>
+            <p>
+              The frequentist interprets $P(A)$ as the limiting relative frequency in
+              repeated trials. Under suitable assumptions (independence, identical
+              distribution), the Law of Large Numbers shows that empirical frequencies
+              converge to the probability measure $P$ that obeys the axioms.
+            </p>
+            <p>
+              So the axioms describe the idealized limit object that relative frequencies
+              approach, resolving the worry that raw frequencies alone may fluctuate.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Bayesian</h3>
+            <p>
+              The Bayesian treats $P(\cdot)$ as a degree of belief, but still requires it to
+              satisfy the axioms to avoid incoherent betting systems (Dutch-book arguments).
+            </p>
+            <p>
+              The axioms thus give the rationality constraints for subjective probabilities,
+              while Bayes’ theorem follows directly from them and provides the update rule.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Resolution of inconsistencies</h3>
+            <ul>
+              <li>
+                The <strong>same mathematical object</strong> $(\Omega, \mathcal{F}, P)$
+                underlies all interpretations.
+              </li>
+              <li>
+                Disagreements about what probabilities “are” become external: they concern
+                how $P$ is chosen or justified, not how it behaves.
+              </li>
+              <li>
+                Paradoxes (e.g. conflicting geometric probabilities) are seen as resulting
+                from inconsistent choices of $\mathcal{F}$ or of the underlying measure, not
+                from the axioms themselves.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEASURE THEORY LINK -->
+      <section id="measure-theory">
+        <h2>3. Probability theory and measure theory</h2>
+        <p>
+          In modern mathematics, probability theory is built as a special case of measure
+          theory. The basic objects of probability have natural measure-theoretic
+          counterparts.
+        </p>
+
+        <div class="pill-row">
+          <div class="pill">Sample space $\Omega$</div>
+          <div class="pill">$\sigma$-algebra $\mathcal{F}$</div>
+          <div class="pill">Probability measure $P$</div>
+          <div class="pill">Measurable functions</div>
+          <div class="pill">Random variables</div>
+        </div>
+
+        <h3>3.1. Sigma-algebras</h3>
+        <p>
+          A <strong>$\sigma$-algebra</strong> $\mathcal{F}$ on $\Omega$ is a collection of
+          subsets of $\Omega$ (called <em>events</em>) such that:
+        </p>
+        <ul>
+          <li>$\Omega \in \mathcal{F}$.</li>
+          <li>If $A \in \mathcal{F}$, then $A^c = \Omega \setminus A \in \mathcal{F}$.</li>
+          <li>
+            If $(A_i)_{i\ge1}$ is a countable family in $\mathcal{F}$, then
+            $\bigcup_{i=1}^\infty A_i \in \mathcal{F}$.
+          </li>
+        </ul>
+        <p>
+          This structure ensures that the probability of any event we form through countable
+          unions, intersections, and complements is well-defined.
+        </p>
+
+        <h3>3.2. Probability measures</h3>
+        <p>
+          A <strong>measure</strong> $\mu$ on $(\Omega,\mathcal{F})$ assigns a non-negative
+          extended real number $\mu(A)$ to each $A \in \mathcal{F}$, with $\mu(\emptyset)=0$
+          and countable additivity.
+        </p>
+        <p>
+          A <strong>probability measure</strong> $P$ is simply a measure with total mass 1:
+        </p>
+        <div class="formula-box">
+          $$P : \mathcal{F} \to [0,1], \quad P(\emptyset)=0, \quad
+          P(\Omega)=1, \quad P\Big(\bigcup_{i=1}^\infty A_i\Big)
+          = \sum_{i=1}^\infty P(A_i),$$
+          for pairwise disjoint $(A_i)$.
+        </div>
+
+        <h3>3.3. Measurable functions and random variables</h3>
+        <p>
+          Let $(\Omega,\mathcal{F},P)$ be a probability space and
+          $(\mathbb{R}, \mathcal{B})$ be the real line with its Borel $\sigma$-algebra
+          $\mathcal{B}$.
+        </p>
+        <ul>
+          <li>
+            A function $X : \Omega \to \mathbb{R}$ is <strong>measurable</strong> if for
+            every Borel set $B \in \mathcal{B}$ we have $X^{-1}(B) \in \mathcal{F}$.
+          </li>
+          <li>
+            A <strong>random variable</strong> is exactly such a measurable function. Its
+            distribution is the pushforward measure $P_X$ on $\mathbb{R}$ defined by
+            $$P_X(B) = P(X \in B) = P(X^{-1}(B)) \quad \text{for } B \in \mathcal{B}.$$
+          </li>
+        </ul>
+        <p>
+          Expectations and moments become integrals with respect to $P$:
+        </p>
+        <div class="formula-box">
+          $$\mathbb{E}[X] = \int_\Omega X(\omega)\, dP(\omega)
+          = \int_{\mathbb{R}} x \, dP_X(x).$$
+        </div>
+
+        <p>
+          In this way, probability theory is just measure theory with the additional
+          condition $P(\Omega)=1$. Concepts such as independence, conditional expectation,
+          convergence of random variables, and limit theorems are naturally expressed with
+          measure-theoretic tools.
+        </p>
+      </section>
+
+      <!-- DERIVATIONS -->
+      <section id="derivations">
+        <h2>4. Deriving subadditivity and inclusion–exclusion</h2>
+        <p>
+          Starting from the axioms, we can derive important properties such as
+          <em>subadditivity</em> and the <em>inclusion–exclusion principle</em>.
+        </p>
+
+        <h3>4.1. Subadditivity</h3>
+        <p>
+          <strong>Statement.</strong> For any countable family of events
+          $(A_i)_{i\ge1}$ in $\mathcal{F}$,
+        </p>
+        <div class="formula-box">
+          $$P\Big(\bigcup_{i=1}^\infty A_i\Big)
+          \le \sum_{i=1}^\infty P(A_i).$$
+        </div>
+
+        <h4>Proof from the axioms</h4>
+        <p>
+          The $A_i$ need not be disjoint. We construct a disjoint family $(B_i)$ covering the
+          same union:
+        </p>
+        <ul>
+          <li>$B_1 = A_1$,</li>
+          <li>$B_2 = A_2 \setminus A_1$,</li>
+          <li>
+            in general,
+            $$B_k = A_k \setminus \bigcup_{j=1}^{k-1} A_j.$$
+          </li>
+        </ul>
+        <p>
+          Then:
+        </p>
+        <ul>
+          <li>
+            The $B_i$ are pairwise disjoint by construction (each $B_k$ removes all points
+            already included in previous sets).
+          </li>
+          <li>
+            The union is preserved:
+            $$\bigcup_{i=1}^\infty B_i = \bigcup_{i=1}^\infty A_i.$$
+          </li>
+          <li>
+            Each $B_i$ is a subset of $A_i$, so by monotonicity
+            (a consequence of the axioms),
+            $$P(B_i) \le P(A_i).$$
+          </li>
+        </ul>
+        <p>
+          Using countable additivity for the disjoint family $(B_i)$:
+        </p>
+        <div class="formula-box">
+          \[
+          P\Big(\bigcup_{i=1}^\infty A_i\Big)
+          = P\Big(\bigcup_{i=1}^\infty B_i\Big)
+          = \sum_{i=1}^\infty P(B_i)
+          \le \sum_{i=1}^\infty P(A_i).
+          \]
+        </div>
+        <p>
+          This proves subadditivity purely from the axioms.
+        </p>
+
+        <h3>4.2. Inclusion–exclusion principle</h3>
+        <p>
+          For two events $A$ and $B$, the inclusion–exclusion formula is:
+        </p>
+        <div class="formula-box">
+          $$P(A \cup B) = P(A) + P(B) - P(A \cap B).$$
+        </div>
+
+        <h4>Derivation for two events</h4>
+        <p>
+          Decompose $B$ into disjoint pieces:
+        </p>
+        <ul>
+          <li>$B = (B \setminus A) \cup (A \cap B)$ with $(B \setminus A)$ and $(A \cap B)$ disjoint.</li>
+        </ul>
+        <p>
+          By countable additivity (here finite additivity) on disjoint sets:
+        </p>
+        <div class="formula-box">
+          $$P(B) = P(B \setminus A) + P(A \cap B).$$
+        </div>
+        <p>
+          Solve for $P(B \setminus A)$:
+        </p>
+        <div class="formula-box">
+          $$P(B \setminus A) = P(B) - P(A \cap B).$$
+        </div>
+        <p>
+          Now write $A \cup B$ as the disjoint union of $A$ and $B \setminus A$:
+        </p>
+        <ul>
+          <li>
+            $A \cup B = A \cup (B \setminus A)$, and $A$ and $B \setminus A$ are disjoint.
+          </li>
+        </ul>
+        <p>
+          Apply additivity again:
+        </p>
+        <div class="formula-box">
+          \[
+          P(A \cup B)
+          = P(A) + P(B \setminus A)
+          = P(A) + \big(P(B) - P(A \cap B)\big)
+          = P(A) + P(B) - P(A \cap B).
+          \]
+        </div>
+
+        <h4>Finite inclusion–exclusion (sketch)</h4>
+        <p>
+          For finitely many events $A_1,\dots,A_n$, the general inclusion–exclusion
+          formula is
+        </p>
+        <div class="formula-box">
+          \[
+          P\Big(\bigcup_{i=1}^n A_i\Big)
+          = \sum_{i=1}^n P(A_i)
+          - \sum_{i<j} P(A_i \cap A_j)
+          + \sum_{i<j<k} P(A_i \cap A_j \cap A_k)
+          - \cdots + (-1)^{n+1} P(A_1 \cap \cdots \cap A_n).
+          \]
+        </div>
+        <p>
+          This can be proved by induction on $n$, using the two-set formula and repeatedly
+          applying the axioms to control overlaps. Intuitively, each region where several
+          events overlap is initially counted multiple times and then corrected by
+          alternating subtraction and addition.
+        </p>
+      </section>
+    </main>
   </div>
-  <div class="card">
-    <h2>Summary: Why the Axiomatic Approach Matters</h2>
-    <ul>
-      <li>Generalizes and reconciles differing interpretations of probability</li>
-      <li>Handles infinite, continuous, subjective, and complex events</li>
-      <li>Connects probability to broad mathematical ideas (measure, integration, analysis)</li>
-      <li>Ensures powerful properties (subadditivity, inclusion–exclusion, laws of probability) naturally arise from the axioms</li>
-    </ul>
-  </div>
-</div>
 </body>
 </html>
+```
