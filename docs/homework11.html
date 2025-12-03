@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HMK – Wiener Process & SDE Simulation (Euler–Maruyama)</title>
+
+  <!-- MathJax for formulas -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-alt: #0b1220;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --accent-strong: #0ea5e9;
+      --card-bg: #020617;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148,163,184,0.25);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 24px 70px rgba(15,23,42,0.85);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0%, #020617 60%, #000 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(15,23,42,0.93), rgba(15,23,42,0.98));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148,163,184,0.45);
+      backdrop-filter: blur(28px);
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(30px, 3vw, 40px);
+      margin: 0;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    nav {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      color: var(--muted);
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(148,163,184,0.3);
+      transition: all 0.2s ease;
+    }
+
+    nav a:hover {
+      background: var(--accent);
+      color: #f9fafb;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    section {
+      background: var(--card-bg);
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      margin-top: 18px;
+      font-size: 18px;
+      color: var(--accent-strong);
+    }
+
+    p, ul {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    ul { padding-left: 20px; }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148,163,184,0.4);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: radial-gradient(circle at left, rgba(56,189,248,0.16), transparent);
+      border-radius: 14px;
+      border: 1px solid rgba(56,189,248,0.4);
+      color: #bae6fd;
+      font-size: 14px;
+    }
+
+    .two-cols {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+      gap: 20px;
+      align-items: flex-start;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .two-cols { grid-template-columns: minmax(0, 1fr); }
+      .page { padding: 24px 16px; }
+      section { padding: 18px; }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .controls label {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .controls input {
+      background: #020617;
+      border: 1px solid rgba(148,163,184,0.35);
+      border-radius: var(--radius-pill);
+      padding: 5px 9px;
+      color: var(--text);
+      font-size: 13px;
+      min-width: 80px;
+    }
+
+    .controls input[type="text"] {
+      min-width: 150px;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .controls button {
+      border-radius: var(--radius-pill);
+      border: none;
+      background: var(--accent);
+      color: #f9fafb;
+      padding: 7px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .controls button:hover {
+      background: #0ea5e9;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(56,189,248,0.35);
+    }
+
+    .canvas-wrapper {
+      margin-top: 10px;
+      background: #020617;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.35);
+      padding: 10px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 260px;
+      display: block;
+    }
+
+    .example-box {
+      background: rgba(15,23,42,0.9);
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.4);
+      padding: 12px 14px;
+      font-size: 13px;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: #e5e7eb;
+      overflow-x: auto;
+    }
+
+    .example-box span.kw { color: #22c55e; }
+    .example-box span.fn { color: #38bdf8; }
+    .example-box span.cm { color: #9ca3af; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.45);
+      font-size: 11px;
+      color: #e0f2fe;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="badge">HMK – Stochastic Differential Equations</div>
+      <h1>Wiener Process & SDEs with Euler–Maruyama</h1>
+      <p class="subtitle">
+        Building on the counting-process homework (Poisson process), this page uses the Euler–Maruyama method to simulate a Wiener process (Brownian motion)
+        and optionally more general stochastic differential equations.
+      </p>
+      <nav>
+        <a href="#wiener">Wiener Process</a>
+        <a href="#em-method">Euler–Maruyama</a>
+        <a href="#simulator">Interactive Simulator</a>
+        <a href="#general-sde">General SDEs</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- 1. Wiener process vs counting process -->
+      <section id="wiener">
+        <h2>1. From Counting Processes to Wiener Processes</h2>
+        <p>
+          In the earlier homework, a <strong>counting process</strong> was simulated: events (“successes”) arrive at constant rate \( \lambda \),
+          approximating a <em>Poisson process</em>. That process had non–decreasing integer paths \( N(t) \), jumping by 1 whenever an event occurred.
+        </p>
+        <p>
+          In this homework, the focus shifts to a <strong>Wiener process</strong> (standard Brownian motion) \( W_t \), a continuous-time stochastic process
+          with:
+        </p>
+        <ul>
+          <li>\( W_0 = 0 \).</li>
+          <li>Independent increments: \( W_t - W_s \) is independent of the past for \( t &gt; s \).</li>
+          <li>Gaussian increments: \( W_t - W_s \sim \mathcal{N}(0, t-s) \).</li>
+          <li>Continuous, almost surely nowhere differentiable paths.</li>
+        </ul>
+        <div class="note">
+          Intuitively, the Poisson counting process captures <em>random jump arrivals</em>, while the Wiener process captures <em>random continuous fluctuations</em>.
+        </div>
+      </section>
+
+      <!-- 2. Euler–Maruyama -->
+      <section id="em-method">
+        <h2>2. Euler–Maruyama Method</h2>
+        <p>
+          A <strong>stochastic differential equation (SDE)</strong> has the general form
+        </p>
+        <p style="text-align:center; margin: 8px 0;">
+          \( dX_t = a(X_t,t)\,dt + b(X_t,t)\,dW_t, \quad X_0 = x_0. \)
+        </p>
+        <p>
+          The <strong>Euler–Maruyama scheme</strong> discretizes time \( 0 = t_0 &lt; t_1 &lt; \dots &lt; t_N = T \) with step \( \Delta t \), and updates
+        </p>
+        <p style="text-align:center; margin: 8px 0;">
+          \( X_{n+1} = X_n + a(X_n, t_n)\,\Delta t + b(X_n, t_n)\,\Delta W_n, \)
+        </p>
+        <p style="text-align:center; margin: 4px 0 10px;">
+          \( \Delta W_n \sim \mathcal{N}(0,\Delta t). \)
+        </p>
+        <div class="two-cols">
+          <div>
+            <h3>2.1 Wiener Process as an SDE</h3>
+            <p>
+              A <strong>standard Wiener process</strong> satisfies
+            </p>
+            <p style="text-align:center; margin: 8px 0;">
+              \( dW_t = dW_t \)
+            </p>
+            <p>
+              which corresponds to the SDE with drift \( a(x,t) = 0 \) and diffusion \( b(x,t) = 1 \).
+              The Euler–Maruyama update becomes
+            </p>
+            <p style="text-align:center; margin: 10px 0;">
+              \( W_{n+1} = W_n + \Delta W_n, \quad \Delta W_n \sim \mathcal{N}(0,\Delta t). \)
+            </p>
+            <p>
+              Numerically, this is just generating independent Gaussian increments and taking a cumulative sum.
+            </p>
+          </div>
+          <div>
+            <h3>2.2 General SDE Example</h3>
+            <p>
+              For a more general SDE, for example an <em>Ornstein–Uhlenbeck</em> process
+            </p>
+            <p style="text-align:center; margin: 8px 0;">
+              \( dX_t = \theta(\mu - X_t)\,dt + \sigma\,dW_t, \)
+            </p>
+            <p>
+              Euler–Maruyama gives:
+            </p>
+            <p style="text-align:center; margin: 8px 0;">
+              \( X_{n+1} = X_n + \theta(\mu - X_n)\,\Delta t + \sigma\,\Delta W_n. \)
+            </p>
+            <p>
+              The same numerical framework can therefore simulate many SDEs by plugging in different drift \( a(x,t) \) and diffusion \( b(x,t) \) functions.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Interactive simulator -->
+      <section id="simulator">
+        <h2>3. Interactive Euler–Maruyama Simulator</h2>
+        <p>
+          The widget below implements the Euler–Maruyama method in JavaScript. By default, it simulates a standard Wiener process.
+          Switching to “Custom SDE” allows specifying drift \( a(x,t) \) and diffusion \( b(x,t) \) functions.
+        </p>
+
+        <div class="two-cols">
+          <div>
+            <div class="controls">
+              <label>
+                Mode
+                <select id="modeSelect" style="background:#020617;border:1px solid rgba(148,163,184,0.35);border-radius:var(--radius-pill);padding:5px 9px;color:var(--text);font-size:13px;">
+                  <option value="wiener">Wiener process</option>
+                  <option value="custom">Custom SDE</option>
+                </select>
+              </label>
+              <label>
+                \( T \) (final time)
+                <input id="TInput" type="number" min="0.1" step="0.1" value="1">
+              </label>
+              <label>
+                Steps \( N \)
+                <input id="NInput" type="number" min="10" step="10" value="500">
+              </label>
+              <label>
+                Paths
+                <input id="pathsInput" type="number" min="1" max="20" value="5">
+              </label>
+              <label>
+                \( X_0 \)
+                <input id="x0Input" type="number" step="0.1" value="0">
+              </label>
+              <button id="runSim">Run Simulation</button>
+            </div>
+
+            <div id="customInputs" style="display:none; margin-top:10px;">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+                Custom SDE: \( dX_t = a(X_t,t)\,dt + b(X_t,t)\,dW_t \).
+                Use JavaScript syntax: variables <code>x</code>, <code>t</code>, <code>dt</code>.
+              </p>
+              <div class="controls">
+                <label>
+                  Drift \( a(x,t) \)
+                  <input id="driftInput" type="text" value="0.5*(1 - x)">
+                </label>
+                <label>
+                  Diffusion \( b(x,t) \)
+                  <input id="diffInput" type="text" value="0.8">
+                </label>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="sdeCanvas"></canvas>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-top:8px;">
+              Each path uses independent Gaussian increments \( \Delta W_n \sim \mathcal{N}(0,\Delta t) \). Re-running shows different realizations of the same underlying process.
+            </p>
+          </div>
+
+          <div>
+            <h3>3.1 Pseudocode for Euler–Maruyama</h3>
+            <div class="example-box">
+<span class="cm">// Given T, N, X0 and functions a(x,t), b(x,t):</span><br>
+<span class="kw">dt</span> = T / N<br>
+<span class="kw">for</span> n = 0,1,...,N-1:<br>
+&nbsp;&nbsp;<span class="kw">sample</span> Z ~ N(0,1)<br>
+&nbsp;&nbsp;dW = sqrt(dt) * Z<br>
+&nbsp;&nbsp;X[n+1] = X[n] + a(X[n], t_n) * dt + b(X[n], t_n) * dW
+            </div>
+
+            <h3 style="margin-top:18px;">3.2 Interpreting the Simulation</h3>
+            <ul style="font-size:14px;">
+              <li><span class="chip">Wiener process</span> – Set drift \( a = 0 \), diffusion \( b = 1 \). The paths fluctuate around 0 with variance growing like \( t \).</li>
+              <li><span class="chip">Mean-reverting</span> – Example drift \( a(x,t) = \theta(\mu - x) \) with constant diffusion. Paths tend to be pulled back toward \( \mu \).</li>
+              <li><span class="chip">Volatility</span> – Larger diffusion \( b \) produces “rougher” paths with bigger random swings.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Generalization and theory -->
+      <section id="general-sde">
+        <h2>4. Generalization & Theoretical Notes</h2>
+        <h3>4.1 From Wiener Process to General SDEs</h3>
+        <p>
+          The Wiener process is the building block of many stochastic models. Once Euler–Maruyama is implemented, general SDEs are obtained simply by changing
+          the drift \( a(x,t) \) and diffusion \( b(x,t) \) functions:
+        </p>
+        <ul>
+          <li><strong>Geometric Brownian motion</strong> (finance): \( dS_t = \mu S_t\,dt + \sigma S_t\,dW_t \).</li>
+          <li><strong>Ornstein–Uhlenbeck</strong> (mean reversion): \( dX_t = \theta(\mu - X_t)\,dt + \sigma\,dW_t \).</li>
+          <li><strong>General models</strong> in physics, biology, and engineering with state-dependent drift and volatility.</li>
+        </ul>
+
+        <h3>4.2 Accuracy and Limitations</h3>
+        <ul>
+          <li>Smaller time step \( \Delta t \) generally means more accurate, but more computationally expensive simulations.</li>
+          <li>Euler–Maruyama is a <em>strong order 1/2</em> method; more accurate schemes (Milstein, higher order) exist for demanding applications.</li>
+          <li>Despite being simple, Euler–Maruyama is usually sufficient to visualize qualitative properties of Wiener processes and many SDEs.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 – HMK: Wiener Process & SDE Simulation via Euler–Maruyama</p>
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('sdeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    function simulateSDE({T, N, paths, x0, driftFn, diffFn}) {
+      const dt = T / N;
+      const t = new Array(N + 1);
+      for (let i = 0; i <= N; i++) t[i] = i * dt;
+
+      const allPaths = [];
+      for (let k = 0; k < paths; k++) {
+        const X = new Array(N + 1);
+        X[0] = x0;
+        for (let n = 0; n < N; n++) {
+          const tn = t[n];
+          const x = X[n];
+          const a = driftFn(x, tn, dt);
+          const b = diffFn(x, tn, dt);
+          const z = gaussian();
+          const dW = Math.sqrt(dt) * z;
+          X[n + 1] = x + a * dt + b * dW;
+        }
+        allPaths.push(X);
+      }
+      return { t, allPaths };
+    }
+
+    // Box–Muller for N(0,1)
+    function gaussian() {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    function drawPaths(t, allPaths, T) {
+      resizeCanvas();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width / window.devicePixelRatio;
+      const h = canvas.height / window.devicePixelRatio;
+      const left = 48;
+      const right = w - 18;
+      const top = 16;
+      const bottom = h - 36;
+
+      let minX = Infinity, maxX = -Infinity;
+      allPaths.forEach(path => {
+        path.forEach(v => {
+          if (v < minX) minX = v;
+          if (v > maxX) maxX = v;
+        });
+      });
+      if (!isFinite(minX) || !isFinite(maxX)) {
+        minX = -1; maxX = 1;
+      }
+      if (maxX === minX) { maxX += 1; minX -= 1; }
+
+      const xScale = (right - left) / T;
+      const yScale = (bottom - top) / (maxX - minX);
+
+      function Xcoord(time) { return left + time * xScale; }
+      function Ycoord(val) { return bottom - (val - minX) * yScale; }
+
+      // Axes
+      ctx.strokeStyle = 'rgba(148,163,184,0.8)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(148,163,184,0.9)';
+      ctx.font = '12px system-ui';
+      ctx.fillText('t', (left + right) / 2 - 4, h - 14);
+      ctx.save();
+      ctx.translate(16, (top + bottom) / 2 + 18);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('X(t)', 0, 0);
+      ctx.restore();
+
+      ctx.fillText('0', Xcoord(0) - 3, bottom + 13);
+      ctx.fillText(T.toFixed(2), Xcoord(T) - 12, bottom + 13);
+      ctx.fillText((T / 2).toFixed(2), Xcoord(T / 2) - 12, bottom + 13);
+
+      ctx.fillText(maxX.toFixed(2), left - 40, Ycoord(maxX) + 4);
+      ctx.fillText(minX.toFixed(2), left - 40, Ycoord(minX) + 4);
+
+      const colors = [
+        '#38bdf8','#f97316','#22c55e','#eab308','#a855f7',
+        '#f472b6','#10b981','#f87171','#4ade80','#c4b5fd'
+      ];
+
+      allPaths.forEach((path, idx) => {
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = colors[idx % colors.length];
+        ctx.moveTo(Xcoord(t[0]), Ycoord(path[0]));
+        for (let n = 1; n < t.length; n++) {
+          ctx.lineTo(Xcoord(t[n]), Ycoord(path[n]));
+        }
+        ctx.stroke();
+      });
+    }
+
+    function runSimulation() {
+      const mode = document.getElementById('modeSelect').value;
+      const T = Math.max(0.1, parseFloat(document.getElementById('TInput').value) || 1);
+      const N = Math.max(10, parseInt(document.getElementById('NInput').value, 10) || 500);
+      const paths = Math.min(20, Math.max(1, parseInt(document.getElementById('pathsInput').value, 10) || 5));
+      const x0 = parseFloat(document.getElementById('x0Input').value) || 0;
+
+      let driftFn, diffFn;
+
+      if (mode === 'wiener') {
+        driftFn = (x, t, dt) => 0;
+        diffFn = (x, t, dt) => 1;
+      } else {
+        const driftExpr = document.getElementById('driftInput').value || '0';
+        const diffExpr = document.getElementById('diffInput').value || '1';
+        try {
+          driftFn = new Function('x','t','dt', 'return ' + driftExpr + ';');
+        } catch (e) {
+          alert('Invalid drift function. Using 0.');
+          driftFn = (x,t,dt) => 0;
+        }
+        try {
+          diffFn = new Function('x','t','dt', 'return ' + diffExpr + ';');
+        } catch (e) {
+          alert('Invalid diffusion function. Using 1.');
+          diffFn = (x,t,dt) => 1;
+        }
+      }
+
+      const { t, allPaths } = simulateSDE({T, N, paths, x0, driftFn, diffFn});
+      drawPaths(t, allPaths, T);
+    }
+
+    document.getElementById('modeSelect').addEventListener('change', (e) => {
+      const customBox = document.getElementById('customInputs');
+      customBox.style.display = e.target.value === 'custom' ? 'block' : 'none';
+    });
+
+    document.getElementById('runSim').addEventListener('click', runSimulation);
+    window.addEventListener('resize', runSimulation);
+
+    // Initial run
+    runSimulation();
+  </script>
+</body>
+</html>
