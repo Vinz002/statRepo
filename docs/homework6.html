@@ -121,40 +121,46 @@
         <div>
           <h3>1.1 Mean recurrence</h3>
           <p>
-            Let $m_n=\dfrac{1}{n}\sum_{i=1}^n x_i$ and $m_{n-1}=\dfrac{1}{n-1}\sum_{i=1}^{n-1} x_i$.
+            Let \(m_n=\dfrac{1}{n}\sum_{i=1}^n x_i\) and \(m_{n-1}=\dfrac{1}{n-1}\sum_{i=1}^{n-1} x_i\).
             Then:
           </p>
           <p>
-            $$\begin{aligned}
+            \[
+            \begin{aligned}
             m_n &= \frac{1}{n}\Big(\sum_{i=1}^{n-1} x_i + x_n\Big)
                 = \frac{n-1}{n}\,m_{n-1} + \frac{x_n}{n} \\
                 &= m_{n-1} + \frac{x_n - m_{n-1}}{n}. \quad\square
-            \end{aligned}$$
+            \end{aligned}
+            \]
           </p>
           <p class="note">
-            Interpretation: the new mean is the old mean plus a fraction $1/n$ of the prediction error $(x_n-m_{n-1})$.
+            Interpretation: the new mean is the old mean plus a fraction \(1/n\) of the prediction error \((x_n-m_{n-1})\).
           </p>
         </div>
         <div>
           <h3>1.2 Variance (Welford form)</h3>
           <p>
-            Define $M2_n = \sum_{i=1}^n (x_i - m_n)^2$, the “sum of squares about the mean”.
+            Define \(M2_n = \sum_{i=1}^n (x_i - m_n)^2\), the “sum of squares about the mean”.
             Then the updates:
           </p>
           <p>
-            $$\begin{aligned}
+            \[
+            \begin{aligned}
               \delta &= x_n - m_{n-1},\\
               m_n &= m_{n-1} + \frac{\delta}{n},\\
               M2_n &= M2_{n-1} + \delta\,(x_n - m_n)
-            \end{aligned}$$
+            \end{aligned}
+            \]
           </p>
           <p>
-            follow from expanding $(x_i-m_n)^2$ and using $\sum_{i=1}^n (x_i-m_n)=0$. The (unbiased) sample variance is
-            $$s_n^2 = \frac{M2_n}{n-1}, \quad n\ge2.$$
+            follow from expanding \((x_i-m_n)^2\) and using \(\sum_{i=1}^n (x_i-m_n)=0\). The (unbiased) sample variance is
+            \[
+              s_n^2 = \frac{M2_n}{n-1}, \quad n\ge2.
+            \]
           </p>
           <p class="note">
             This recurrence avoids catastrophic cancellation that occurs if you compute
-            $\sum x_i^2 - n m_n^2$ directly for large $n$.
+            \(\sum x_i^2 - n m_n^2\) directly for large \(n\).
           </p>
         </div>
       </div>
@@ -182,9 +188,9 @@
             <thead>
               <tr>
                 <th>n</th>
-                <th>mean $m_n$</th>
-                <th>$M2_n$</th>
-                <th>variance (sample) $s_n^2$</th>
+                <th>mean \(m_n\)</th>
+                <th>\(M2_n\)</th>
+                <th>variance (sample) \(s_n^2\)</th>
                 <th>std</th>
               </tr>
             </thead>
@@ -202,7 +208,7 @@
         </div>
 
         <p class="note">
-          <strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, numerically stable —
+          <strong>Why online?</strong> One pass, \(\mathcal{O}(1)\) memory, numerically stable —
           ideal for data streams, embedded systems, or very large datasets.
         </p>
       </div>
@@ -211,11 +217,11 @@
     <section class="card" id="extras">
       <h2>3) Weighted & Robust Variants</h2>
       <ul>
-        <li><strong>Weighted online mean:</strong> maintain total weight $W$ and update
-          $$m \leftarrow m + \frac{w(x-m)}{W+w}.$$</li>
+        <li><strong>Weighted online mean:</strong> maintain total weight \(W\) and update
+          \(m \leftarrow m + \dfrac{w(x-m)}{W+w}\).</li>
         <li><strong>Exponential moving average (EMA):</strong>
-          $$m \leftarrow (1-\alpha)m + \alpha x,$$
-          with forgetting factor $\alpha\in(0,1]$ for recent observations.</li>
+          \(m \leftarrow (1-\alpha)m + \alpha x\),
+          with forgetting factor \(\alpha\in(0,1]\) for recent observations.</li>
         <li><strong>Robust online spread:</strong> track approximate quantiles (e.g. P² algorithm) to estimate median and IQR without storing all data.</li>
       </ul>
     </section>
