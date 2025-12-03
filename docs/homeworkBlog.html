@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Statistics Homeworks 2025–26 – Hub</title>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-alt: #0b1220;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --accent-strong: #0ea5e9;
+      --card-bg: #020617;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148,163,184,0.25);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 24px 70px rgba(15,23,42,0.85);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0%, #020617 60%, #000 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(15,23,42,0.93), rgba(15,23,42,0.98));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148,163,184,0.45);
+      backdrop-filter: blur(28px);
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148,163,184,0.4);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      width: fit-content;
+    }
+
+    h1 {
+      font-size: clamp(30px, 3vw, 40px);
+      margin: 0;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 740px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    section {
+      background: var(--card-bg);
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .card-link {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.35);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.12), #020617);
+      padding: 14px 16px 16px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .card-link:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(15,23,42,0.85);
+      border-color: var(--accent);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.24), #020617);
+    }
+
+    .card-link h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--accent-strong);
+    }
+
+    .card-link p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .slug {
+      font-size: 11px;
+      color: rgba(148,163,184,0.8);
+      margin-top: 4px;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .page { padding: 24px 16px; }
+      section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="badge">Blog · Homework Index</div>
+      <h1>Statistics Homeworks 2025–26</h1>
+      <p class="subtitle">
+        Hub page for all homework assignments. Each card redirects to the corresponding HTML page
+        at de>vinz002.github.io/statRepo</code>.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>All Homeworks</h2>
+        <p>
+          Click a homework to read its statement, simulations, and theoretical discussion.
+        </p>
+
+        <div class="grid">
+          <!-- HMWK 1 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework1.html">
+            <h3>HMWK 1 (Introductory concepts, ...)</h3>
+            <p>
+              Basic introductory concepts in probability and statistics, setting the stage for all subsequent homeworks.
+            </p>
+            <div class="slug">homework1.html</div>
+          </a>
+
+          <!-- HMWK 2 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework2.html">
+            <h3>HMWK 2 (concept of distribution, coding/decoding exercise using a distribution, ...)</h3>
+            <p>
+              Concept of probability distribution and a coding/decoding exercise that uses a given distribution.
+            </p>
+            <div class="slug">homework2.html</div>
+          </a>
+
+          <!-- HMWK 3 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework3.html">
+            <h3>HMWK 3 (RSA ecncode/decode using distributions)</h3>
+            <p>
+              RSA-style encode/decode activities connected with distributions and randomness.
+            </p>
+            <div class="slug">homework3.html</div>
+          </a>
+
+          <!-- HMWK 4 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework4.html">
+            <h3>HMWK 4 (LLN, Law of large numbers simulation of relative frequency trajectories)</h3>
+            <p>
+              Simulate Bernoulli trials and visualize the Law of Large Numbers through relative frequency trajectories.
+            </p>
+            <div class="slug">homework4.html</div>
+          </a>
+
+          <!-- HMWK 5 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework5.html">
+            <h3>HMWK 5 Reseach on different types of location and dispersion measures (Avg, MSE, Std, ...) and their use</h3>
+            <p>
+              Research-oriented exploration of mean, variance, MSE, standard deviation and other location/dispersion measures.
+            </p>
+            <div class="slug">homework5.html</div>
+          </a>
+
+          <!-- HMWK 6 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework6.html">
+            <h3>HMWK 6 Proof of recurrence formulas and implementation of "online" algorithms} for mean and variance</h3>
+            <p>
+              Prove recurrence formulas and implement online (streaming) algorithms for updating mean and variance.
+            </p>
+            <div class="slug">homework6.html</div>
+          </a>
+
+          <!-- HMWK 7 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework7.html">
+            <h3>HMWK 7 Penetration score process simulation (Random Walk)</h3>
+            <p>
+              Simulate a penetration-score random walk and analyze its behavior over time.
+            </p>
+            <div class="slug">homework7.html</div>
+          </a>
+
+          <!-- HMWK 8 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework8.html">
+            <h3>HMWK 8 Compare Bernoullli process with Random walk, visual properties, Binomial Coefficients, Tartaglia, Fibonacci, etc.</h3>
+            <p>
+              Compare Bernoulli processes and random walks, highlighting visual features and links to binomial coefficients,
+              Tartaglia’s triangle and Fibonacci sequences.
+            </p>
+            <div class="slug">homework8.html</div>
+          </a>
+
+          <!-- HMWK 9 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework9.html">
+            <h3>HMWK 9 Kolmogorov Axioms / Measure Theory / Subadditivity / Inclusion/Exclusion principle</h3>
+            <p>
+              Study Kolmogorov’s axioms, basic measure-theoretic language and derive subadditivity and the inclusion–exclusion principle.
+            </p>
+            <div class="slug">homework9.html</div>
+          </a>
+
+          <!-- HMWK 10 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework10.html">
+            <h3>HMWK 10 Poisson arrival/jump process (memoryless) simulation</h3>
+            <p>
+              Simulate a Poisson arrival/jump process, emphasizing the memoryless property and distribution of jump counts.
+            </p>
+            <div class="slug">homework10.html</div>
+          </a>
+
+          <!-- HMWK 11 -->
+          <a class="card-link" href="https://vinz002.github.io/statRepo/homework11.html">
+            <h3>HMWK 11 Wiener process simulation (ABM, Brownian motion)</h3>
+            <p>
+              Simulate a Wiener process (Arithmetic Brownian Motion) and explore the properties of Brownian paths.
+            </p>
+            <div class="slug">homework11.html</div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 · Statistics Homework Hub · vinz002.github.io/statRepo</p>
+    </footer>
+  </div>
+</body>
+</html>
