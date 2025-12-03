@@ -77,6 +77,7 @@
       margin-top: 16px;
       display: flex;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     nav a {
@@ -152,6 +153,61 @@
       border: 1px solid rgba(148,163,184,0.4);
       font-size: 14px;
       margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .controls label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .controls input {
+      background: #020617;
+      border: 1px solid rgba(148,163,184,0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 14px;
+      width: 90px;
+    }
+
+    .controls button {
+      border-radius: var(--radius-pill);
+      border: none;
+      background: var(--accent);
+      color: #f9fafb;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .controls button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .canvas-wrapper {
+      margin-top: 18px;
+      background: #020617;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.35);
+      padding: 12px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 260px;
+      display: block;
     }
 
     footer {
@@ -184,37 +240,56 @@
           We simulate a counting process over a time interval \( T \), where events occur independently and uniformly at a constant average rate \( \lambda \). The idea is to divide the time interval \( T \) into \( n \) small subintervals and generate an event in each subinterval with probability \( \lambda / n \).
         </p>
         
-        <h3>1.1. Simulation Steps</h3>
+        <h3>1.1. Simulation Steps (Python-style pseudocode)</h3>
         <p>
-          For simplicity, let's set the interval length \( T = 1 \) and the number of subintervals \( n = 5000 \). Here's the simulation process in Python:
+          For simplicity, let's set the interval length \( T = 1 \) and the number of subintervals \( n = 5000 \). Conceptually, a Python implementation looks like this:
         </p>
 
         <div class="example-code">
-          <pre>
+<pre>
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Parameters
 lambda_rate = 0.1  # average rate of events (lambda)
 T = 1              # time interval
 n = 5000           # number of subintervals
 
-# Simulate the process
 time_intervals = np.linspace(0, T, n+1)
-events = np.random.rand(n) < lambda_rate / n
+events = np.random.rand(n) &lt; lambda_rate / n
 
-# Plotting the results
-plt.step(time_intervals[:-1], np.cumsum(events), where="post", color="blue", label="Counting Process")
+plt.step(time_intervals[:-1], np.cumsum(events),
+         where="post", color="blue", label="Counting Process")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Events")
 plt.title(f"Simulated Counting Process with λ = {lambda_rate}")
 plt.grid(True)
 plt.show()
-          </pre>
+</pre>
         </div>
 
         <p>
-          In this simulation, the events are generated using the `rand` function, which generates random numbers between 0 and 1. If the random number is less than \( \lambda / n \), an event is considered to occur in that subinterval.
+          On the web, we cannot run Python directly, so we implement the same logic in JavaScript and render the counting process in the canvas below.
+        </p>
+
+        <div class="controls">
+          <label>λ (rate):
+            <input id="lambdaInput" type="number" min="0" max="10" step="0.05" value="0.1">
+          </label>
+          <label>T (time horizon):
+            <input id="TInput" type="number" min="0.1" max="10" step="0.1" value="1">
+          </label>
+          <label>n (subintervals):
+            <input id="nInput" type="number" min="100" max="20000" step="100" value="5000">
+          </label>
+          <button id="runSim">Run Simulation</button>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="countingCanvas"></canvas>
+        </div>
+
+        <p>
+          The blue step function shows the cumulative count of events \( N(t) \) over time, closely mirroring what the Python script would produce with Matplotlib.
         </p>
       </section>
 
@@ -282,5 +357,120 @@ plt.show()
       <p>&copy; 2025 Probability Simulation Homework</p>
     </footer>
   </div>
+
+  <script>
+    const canvas = document.getElementById('countingCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      // Match canvas size to CSS box for crisp drawing
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    function simulateCountingProcess(lambdaRate, T, n) {
+      const dt = T / n;
+      const times = new Array(n + 1);
+      const counts = new Array(n + 1);
+      let count = 0;
+      times[0] = 0;
+      counts[0] = 0;
+
+      for (let i = 1; i <= n; i++) {
+        times[i] = i * dt;
+        // Bernoulli(λ/n) in each subinterval
+        const eventOccurs = Math.random() < (lambdaRate * dt);
+        if (eventOccurs) count += 1;
+        counts[i] = count;
+      }
+      return { times, counts };
+    }
+
+    function drawCountingProcess(times, counts, T) {
+      resizeCanvas();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width / window.devicePixelRatio;
+      const h = canvas.height / window.devicePixelRatio;
+      const left = 50;
+      const right = w - 20;
+      const bottom = h - 40;
+      const top = 20;
+
+      // Determine max count for scaling
+      const maxCount = Math.max(...counts, 1);
+
+      // Helper to map to canvas
+      const xScale = (right - left) / T;
+      const yScale = (bottom - top) / Math.max(maxCount, 1);
+
+      function X(t) { return left + t * xScale; }
+      function Y(c) { return bottom - c * yScale; }
+
+      // Axes
+      ctx.strokeStyle = 'rgba(148,163,184,0.8)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(148,163,184,0.85)';
+      ctx.font = '12px system-ui';
+      ctx.fillText('Time', (left + right) / 2 - 14, h - 16);
+      ctx.save();
+      ctx.translate(18, (top + bottom) / 2 + 24);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Cumulative Events N(t)', 0, 0);
+      ctx.restore();
+
+      // Ticks on x-axis (0, T/2, T)
+      ctx.fillText('0', X(0) - 3, bottom + 14);
+      ctx.fillText(T.toFixed(2), X(T) - 10, bottom + 14);
+      ctx.fillText((T / 2).toFixed(2), X(T / 2) - 10, bottom + 14);
+
+      // Step path
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(X(times[0]), Y(counts[0]));
+      for (let i = 1; i < times.length; i++) {
+        // horizontal step
+        ctx.lineTo(X(times[i]), Y(counts[i - 1]));
+        // vertical jump
+        ctx.lineTo(X(times[i]), Y(counts[i]));
+      }
+      ctx.stroke();
+    }
+
+    function run() {
+      const lambdaInput = document.getElementById('lambdaInput');
+      const TInput = document.getElementById('TInput');
+      const nInput = document.getElementById('nInput');
+
+      let lambda = parseFloat(lambdaInput.value);
+      let T = parseFloat(TInput.value);
+      let n = parseInt(nInput.value, 10);
+
+      if (!Number.isFinite(lambda) || lambda < 0) lambda = 0.1;
+      if (!Number.isFinite(T) || T <= 0) T = 1;
+      if (!Number.isFinite(n) || n < 10) n = 5000;
+
+      const { times, counts } = simulateCountingProcess(lambda, T, n);
+      drawCountingProcess(times, counts, T);
+    }
+
+    document.getElementById('runSim').addEventListener('click', run);
+    window.addEventListener('resize', () => {
+      // Redraw with last parameters on resize
+      run();
+    });
+
+    // Initial draw
+    run();
+  </script>
 </body>
 </html>
