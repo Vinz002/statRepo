@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HMWK 6 – Recurrence Formulas & Online Algorithms for Mean and Variance</title>
+  <meta name="description" content="Proof of recurrence formulas for mean and variance and implementation of online (one-pass) algorithms such as Welford's method." />
+
+  <!-- Prism for syntax highlight -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#f6f7fb; --surface:#ffffff; --text:#0f172a; --muted:#475569;
+      --primary:#0ea5e9; --primary-700:#0369a1; --accent:#22c55e;
+      --border:#e2e8f0; --shadow:0 10px 40px rgba(2,6,23,.08);
+      --radius:16px; --radius-sm:12px; --container:980px;
+      --gradient: linear-gradient(135deg, rgba(56,189,248,.18), rgba(52,211,153,.18));
+    }
+    [data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#0b1220; --surface:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+      --primary:#38bdf8; --primary-700:#0ea5e9; --accent:#34d399;
+      --border:#1f2937; --shadow:0 20px 60px rgba(0,0,0,.45);
+      --gradient: linear-gradient(135deg, rgba(56,189,248,.12), rgba(52,211,153,.12));
+    }
+    *,*:before,*:after{box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font:16px/1.65 Inter, system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;}
+    .container{max-width:var(--container);margin:0 auto;padding:0 1.2rem;}
+    .card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem;margin:1.2rem 0;}
+    @media (min-width:720px){.card{padding:2rem;}}
+    header.card{
+      z-index:5;
+      backdrop-filter: blur(6px);
+      background: color-mix(in oklab, var(--surface) 88%, transparent);
+    }
+    h1,h2{color:var(--primary-700);margin-top:0;}
+    .lead{color:var(--muted);font-size:1.05rem;margin:.3rem 0 0;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;}
+    .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);
+      padding:.55rem .9rem;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);}
+    .btn.primary{background:var(--primary);color:#fff;border-color:transparent;}
+    .pill{display:inline-block;border:1px solid var(--border);padding:.25rem .6rem;
+      border-radius:999px;color:var(--muted);font-size:.85rem;background:var(--surface);}
+    .toc{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:.8rem;}
+    .toc a{display:block;background:var(--surface);border:1px solid var(--border);
+      padding:.8rem 1rem;border-radius:12px;text-decoration:none;color:inherit;}
+    .note{border-left:4px solid var(--accent);padding:.9rem 1rem;background:rgba(34,197,94,.08);border-radius:8px;}
+    .muted{ color: var(--muted); }
+
+    table{ width:100%; border-collapse:separate; border-spacing:0; margin-top:1rem; min-width: 560px;}
+    th,td{padding:.75rem 1rem;border-bottom:1px solid var(--border);text-align:left;}
+    th{background:var(--primary);color:#fff; position: sticky; top: 0;}
+    tr:nth-child(even) td{ background: color-mix(in oklab, var(--surface) 92%, #000 0%) }
+    .table-wrap{ overflow:auto; }
+
+    .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;}
+    canvas{width:100%;max-width:760px;height:260px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+    .chart-block {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 1.1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(80,102,113,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chart-block .chart-label {
+      margin-top: .8rem;
+      color: var(--muted);
+      font-size: 1.02em;
+      text-align: center;
+    }
+    .grid{display:grid;gap:2.2rem;}
+    @media (min-width:980px){.grid.cols-2{grid-template-columns:1.05fr .95fr;}}
+    #chart{margin-top: 0;}
+
+    pre[class*="language-"] {
+      border-radius: 12px;
+      font-size: 13px;
+    }
+  </style>
+
+  <!-- MathJax for formulas -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <div class="toolbar" style="justify-content:space-between">
+        <div>
+          <h1 style="margin:.2rem 0">HMWK 6 – Recurrence Formulas & Online Algorithms</h1>
+          <p class="lead">
+            Proof of recurrence formulas for the mean and variance, and interactive <em>online</em> (one‑pass) algorithms
+            such as Welford’s method for streaming data.
+          </p>
+        </div>
+        <div class="toolbar">
+          <span class="pill">Light/Dark</span>
+          <button class="btn" id="themeToggle" aria-label="Toggle theme">🌗 Toggle</button>
+        </div>
+      </div>
+      <nav class="toc">
+        <a href="#proofs">1) Recurrence Proofs</a>
+        <a href="#online">2) Online Algorithms (Interactive)</a>
+        <a href="#extras">3) Weighted & Robust Variants</a>
+      </nav>
+    </header>
+
+    <section class="card" id="proofs">
+      <h2>1) Recurrence Proofs (Mean &amp; Variance)</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>1.1 Mean recurrence</h3>
+          <p>
+            Let $m_n=\dfrac{1}{n}\sum_{i=1}^n x_i$ and $m_{n-1}=\dfrac{1}{n-1}\sum_{i=1}^{n-1} x_i$.
+            Then:
+          </p>
+          <p>
+            $$\begin{aligned}
+            m_n &= \frac{1}{n}\Big(\sum_{i=1}^{n-1} x_i + x_n\Big)
+                = \frac{n-1}{n}\,m_{n-1} + \frac{x_n}{n} \\
+                &= m_{n-1} + \frac{x_n - m_{n-1}}{n}. \quad\square
+            \end{aligned}$$
+          </p>
+          <p class="note">
+            Interpretation: the new mean is the old mean plus a fraction $1/n$ of the prediction error $(x_n-m_{n-1})$.
+          </p>
+        </div>
+        <div>
+          <h3>1.2 Variance (Welford form)</h3>
+          <p>
+            Define $M2_n = \sum_{i=1}^n (x_i - m_n)^2$, the “sum of squares about the mean”.
+            Then the updates:
+          </p>
+          <p>
+            $$\begin{aligned}
+              \delta &= x_n - m_{n-1},\\
+              m_n &= m_{n-1} + \frac{\delta}{n},\\
+              M2_n &= M2_{n-1} + \delta\,(x_n - m_n)
+            \end{aligned}$$
+          </p>
+          <p>
+            follow from expanding $(x_i-m_n)^2$ and using $\sum_{i=1}^n (x_i-m_n)=0$. The (unbiased) sample variance is
+            $$s_n^2 = \frac{M2_n}{n-1}, \quad n\ge2.$$
+          </p>
+          <p class="note">
+            This recurrence avoids catastrophic cancellation that occurs if you compute
+            $\sum x_i^2 - n m_n^2$ directly for large $n$.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="online">
+      <h2>2) Online Algorithms (Interactive)</h2>
+      <p class="muted">
+        Type numbers or stream random samples. The algorithm updates mean and variance in one pass without storing the full dataset.
+      </p>
+      <div>
+        <label class="pill" for="xInput">Add a number</label>
+        <div class="toolbar">
+          <input id="xInput" class="input mono" placeholder="e.g., 3.5" />
+          <button class="btn primary" id="addBtn">Add</button>
+          <button class="btn" id="resetBtn">Reset</button>
+        </div>
+        <div class="toolbar" style="margin-top:.6rem">
+          <button class="btn" id="streamBtn">Stream 100 N(0,1)</button>
+          <button class="btn" id="uniformBtn">Stream 100 U(0,1)</button>
+        </div>
+
+        <div class="table-wrap">
+          <table style="min-width:560px;margin-top:1rem">
+            <thead>
+              <tr>
+                <th>n</th>
+                <th>mean $m_n$</th>
+                <th>$M2_n$</th>
+                <th>variance (sample) $s_n^2$</th>
+                <th>std</th>
+              </tr>
+            </thead>
+            <tbody id="statsBody">
+              <tr><td colspan="5" class="muted">No data yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chart-block">
+          anvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
+          <div class="chart-label">
+            The shaded band shows the running mean ± 1 standard deviation.
+          </div>
+        </div>
+
+        <h3>2.1 Implementation (JavaScript)</h3>
+<pre class="language-javascript">de>class OnlineStats {
+  constructor(){ this.n=0; this.mean=0; this.M2=0; }
+  add(x){
+    this.n += 1;
+    const delta = x - this.mean;
+    this.mean += delta / this.n;              // m_n = m_{n-1} + (x - m_{n-1})/n
+    const delta2 = x - this.mean;
+    this.M2 += delta * delta2;                // M2_n = M2_{n-1} + (x - m_{n-1})(x - m_n)
+  }
+  sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
+  sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
+}</code></pre>
+        <p class="note">
+          <strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, numerically stable —
+          ideal for data streams, embedded systems, or very large datasets.
+        </p>
+      </div>
+    </section>
+
+    <section class="card" id="extras">
+      <h2>3) Weighted & Robust Variants</h2>
+      <ul>
+        <li><strong>Weighted online mean:</strong> maintain total weight $W$ and update
+          $$m \leftarrow m + \frac{w(x-m)}{W+w}.$$</li>
+        <li><strong>Exponential moving average (EMA):</strong>
+          $$m \leftarrow (1-\alpha)m + \alpha x,$$
+          with forgetting factor $\alpha\in(0,1]$ for recent observations.</li>
+        <li><strong>Robust online spread:</strong> track approximate quantiles (e.g. P² algorithm) to estimate median and IQR without storing all data.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click',()=>{
+      const cur = root.getAttribute('data-theme')||'light';
+      root.setAttribute('data-theme', cur==='light'?'dark':'light');
+      draw();
+    });
+
+    class OnlineStats {
+      constructor(){ this.n=0; this.mean=0; this.M2=0; }
+      add(x){
+        this.n += 1;
+        const delta = x - this.mean;
+        this.mean += delta / this.n;
+        const delta2 = x - this.mean;
+        this.M2 += delta * delta2;
+      }
+      sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
+      sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
+      reset(){ this.n=0; this.mean=0; this.M2=0; }
+    }
+
+    const stats = new OnlineStats();
+    const bodyEl = document.getElementById('statsBody');
+    const xInput = document.getElementById('xInput');
+    document.getElementById('addBtn').addEventListener('click', ()=>{
+      const x = parseFloat(xInput.value);
+      if(Number.isFinite(x)) { stats.add(x); xInput.value=''; renderTable(); draw(); }
+      xInput.focus();
+    });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      stats.reset(); renderTable(); draw(true);
+    });
+
+    function randn(){
+      let u=0, v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
+      return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+    }
+    function stream(n, fn){
+      for(let i=0;i<n;i++){ stats.add(fn()); }
+      renderTable(); draw();
+    }
+    document.getElementById('streamBtn').addEventListener('click',()=>stream(100, randn));
+    document.getElementById('uniformBtn').addEventListener('click',()=>stream(100, ()=>Math.random()));
+
+    function renderTable(){
+      if(stats.n===0){
+        bodyEl.innerHTML = '<tr><td colspan="5" class="muted">No data yet.</td></tr>';
+        return;
+      }
+      const v = stats.sampleVariance();
+      const s = stats.sampleStd();
+      let varianceDisplay = '<span class="muted" title="Requires at least 2 samples">N/A</span>';
+      let stdDisplay = '<span class="muted" title="Requires at least 2 samples">N/A</span>';
+      if(stats.n > 1) {
+        varianceDisplay = v.toFixed(6);
+        stdDisplay = s.toFixed(6);
+      }
+      bodyEl.innerHTML = `<tr>
+        <td>${stats.n}</td>
+        <td>${stats.mean.toFixed(6)}</td>
+        <td>${stats.M2.toFixed(6)}</td>
+        <td>${varianceDisplay}</td>
+        <td>${stdDisplay}</td>
+      </tr>`;
+    }
+
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+
+    function draw(clearOnly){
+      const w=canvas.width, h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const styles = getComputedStyle(document.documentElement);
+      const border = styles.getPropertyValue('--border');
+      const muted = styles.getPropertyValue('--muted');
+      const primary = styles.getPropertyValue('--primary-700');
+
+      const left=44, bottom=h-30, right=w-10, top=12;
+      ctx.strokeStyle=border; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
+      ctx.font='11px Inter, system-ui, sans-serif'; ctx.fillStyle=muted; ctx.fillText('n', right-10, h-10);
+
+      if(clearOnly || stats.n===0) return;
+
+      const xmax = Math.max(10, stats.n);
+      const xscale = (right-left)/xmax;
+
+      const s = stats.sampleStd();
+      let yMin, yMax;
+      if(Number.isFinite(s) && s>0){ yMin = stats.mean - 3*s; yMax = stats.mean + 3*s; }
+      else { yMin = 0; yMax = 1; }
+      if(yMin===yMax){ yMin-=1; yMax+=1; }
+      const yscale = (bottom-top)/(yMax-yMin);
+      const Y = y=> bottom - (y - yMin)*yscale;
+
+      ctx.strokeStyle = primary; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(left, Y(stats.mean)); ctx.lineTo(right, Y(stats.mean)); ctx.stroke();
+
+      if(Number.isFinite(s)){
+        ctx.fillStyle = primary; ctx.globalAlpha = .12;
+        ctx.fillRect(left, Y(stats.mean+s), right-left, Math.max(2, Y(stats.mean-s)-Y(stats.mean+s)));
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.fillStyle=muted;
+      ctx.fillText((yMax).toFixed(2), 6, Y(yMax)+4);
+      ctx.fillText((yMin).toFixed(2), 6, Y(yMin)+4);
+      if(Number.isFinite(s)) ctx.fillText('±1 SD', 6, Y(stats.mean)+4);
+    }
+
+    renderTable();
+    draw(true);
+  </script>
+</body>
+</html>
