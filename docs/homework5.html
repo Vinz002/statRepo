@@ -3,13 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Location & Dispersion — Concepts, Proofs, and Online Algorithms</title>
-  <meta name="description" content="Measures of location and dispersion with uses, pros/cons, derivations for mean/variance recurrences, and interactive online algorithms (Welford)." />
-
-  <!-- Prism for syntax highlight -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <title>HMWK 5 – Location & Dispersion: Concepts, Uses, Pros/Cons</title>
+  <meta name="description" content="Research on different types of location and dispersion measures (mean, median, MSE, variance, standard deviation, IQR, MAD, etc.) and their use, pros and cons." />
 
   <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,31 +59,9 @@
     tr:nth-child(even) td{ background: color-mix(in oklab, var(--surface) 92%, #000 0%) }
     .table-wrap{ overflow:auto; }
 
-    .input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;}
-    canvas{width:100%;max-width:760px;height:260px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
-    .chart-block {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 1.1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(80,102,113,0.10);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    @media (max-width:720px){
+      table{min-width:520px;}
     }
-    .chart-block .chart-label {
-      margin-top: .8rem;
-      color: var(--muted);
-      font-size: 1.02em;
-      text-align: center;
-    }
-    .grid{display:grid;gap:2.2rem;}
-    @media (min-width:980px){.grid.cols-2{grid-template-columns:1.05fr .95fr;}}
-    #chart{margin-top: 0;}
   </style>
 
   <!-- MathJax for formulas -->
@@ -102,49 +75,103 @@
     <header class="card">
       <div class="toolbar" style="justify-content:space-between">
         <div>
-          <h1 style="margin:.2rem 0">Measures of Location & Dispersion</h1>
-          <p class="lead">Concepts, use-cases, pros/cons, and proofs with interactive <em>online</em> mean/variance (Welford) — no batch passes.</p>
+          <h1 style="margin:.2rem 0">HMWK 5 – Measures of Location & Dispersion</h1>
+          <p class="lead">
+            Research on different types of location and dispersion measures (mean, median, MSE, variance, standard deviation, IQR, MAD, ...)
+            and their typical uses, advantages and limitations.
+          </p>
         </div>
         <div class="toolbar">
-          <span class="pill">Light/Dark</span>
-          <button class="btn" id="themeToggle" aria-label="Toggle theme">🌗 Toggle</button>
-          <a class="btn primary" href="#online">Jump to Online Algorithms</a>
+          <span class="pill">Light/Dark (optional)</span>
         </div>
       </div>
       <nav class="toc">
         <a href="#concepts">1) Concepts & Taxonomy</a>
         <a href="#uses">2) Uses, Advantages, Limitations</a>
-        <a href="#proofs">3) Recurrence Proofs (Mean & Variance)</a>
-        <a href="#online">4) Online Algorithms (Interactive)</a>
-        <a href="#extras">5) Extras: Weighted & Robust variants</a>
+        <a href="#summary">3) Summary Guidelines</a>
       </nav>
     </header>
 
     <section class="card" id="concepts">
       <h2>1) Concepts & Taxonomy</h2>
-      <p>Measures of <strong>location</strong> (or central tendency) describe a typical value; measures of <strong>dispersion</strong> quantify spread around a typical value.</p>
+      <p>
+        Measures of <strong>location</strong> (or central tendency) describe a typical value of a distribution,
+        while measures of <strong>dispersion</strong> quantify how spread out the data are around that typical value.
+      </p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr><th>Family</th><th>Measure</th><th>Definition (informal)</th><th>Notes</th></tr>
           </thead>
           <tbody>
-            <tr><td rowspan="6"><strong>Location</strong></td><td>Arithmetic mean</td><td>Average of values</td><td>Minimizes squared errors; sensitive to outliers</td></tr>
-            <tr><td>Median</td><td>Middle value (50th percentile)</td><td>Robust to outliers; piecewise-constant under small changes</td></tr>
-            <tr><td>Mode</td><td>Most frequent value</td><td>Can be non-unique; meaningful for discrete/multimodal data</td></tr>
-            <tr><td>Trimmed mean</td><td>Mean after removing extremes</td><td>Trade-off between mean and median</td></tr>
-            <tr><td>Geometric mean</td><td>$\big(\prod x_i\big)^{1/n}$ for $x_i>0$</td><td>For growth rates/ratios; sensitive to zeros</td></tr>
-            <tr><td>Harmonic mean</td><td>$n / \sum (1/x_i)$</td><td>For rates (e.g., speeds); dominated by small values</td></tr>
-            <tr><td rowspan="6"><strong>Dispersion</strong></td><td>Variance</td><td>Mean squared deviation</td><td>In squared units; additive in sums under independence</td></tr>
-            <tr><td>Standard deviation</td><td>$\sqrt{\text{variance}}$</td><td>Same units as data; widely reported</td></tr>
-            <tr><td>Interquartile range (IQR)</td><td>$Q_3-Q_1$</td><td>Robust spread; pairs well with median</td></tr>
-            <tr><td>Median absolute deviation (MAD)</td><td>$\operatorname{median}(|x_i-\operatorname{median}|)$</td><td>Highly robust; use with heavy-tailed/noisy data</td></tr>
-            <tr><td>Range</td><td>$\max-\min$</td><td>Very sensitive to outliers; small-sample volatile</td></tr>
-            <tr><td>Coefficient of variation (CV)</td><td>$\sigma/\mu$</td><td>Scale-free spread (when $\mu>0$)</td></tr>
+            <tr>
+              <td rowspan="6"><strong>Location</strong></td>
+              <td>Arithmetic mean</td>
+              <td>Average of values: $\displaystyle \bar x = \frac1n\sum_{i=1}^n x_i$</td>
+              <td>Minimizes mean squared error; very sensitive to outliers and skew.</td>
+            </tr>
+            <tr>
+              <td>Median</td>
+              <td>Middle value (50th percentile)</td>
+              <td>Robust to outliers; defined for ordinal data; can be less efficient than mean under normality.</td>
+            </tr>
+            <tr>
+              <td>Mode</td>
+              <td>Most frequent value or local maximum of density</td>
+              <td>Can reveal multimodality; depends on binning for continuous data.</td>
+            </tr>
+            <tr>
+              <td>Trimmed mean</td>
+              <td>Mean after removing lowest and highest $p\%$ of values</td>
+              <td>Compromise between mean and median; reduces influence of extremes.</td>
+            </tr>
+            <tr>
+              <td>Geometric mean</td>
+              <td>$\big(\prod x_i\big)^{1/n}$ for $x_i&gt;0$</td>
+              <td>Used for growth rates, ratios, log-normal data; undefined with zeros or negatives.</td>
+            </tr>
+            <tr>
+              <td>Harmonic mean</td>
+              <td>$\displaystyle n\Big/\sum \frac1{x_i}$</td>
+              <td>Appropriate for rates (e.g. speed); dominated by small values.</td>
+            </tr>
+            <tr>
+              <td rowspan="6"><strong>Dispersion</strong></td>
+              <td>Mean squared error (MSE)</td>
+              <td>$\displaystyle \text{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$</td>
+              <td>Combines variance and bias; optimization target in many estimators.</td>
+            </tr>
+            <tr>
+              <td>Variance</td>
+              <td>Mean squared deviation: $\displaystyle \sigma^2=\mathbb{E}[(X-\mu)^2]$</td>
+              <td>Key theoretical quantity; in squared units.</td>
+            </tr>
+            <tr>
+              <td>Sample variance</td>
+              <td>$\displaystyle s^2 = \frac1{n-1}\sum (x_i-\bar x)^2$</td>
+              <td>Unbiased for population variance when sampling IID.</td>
+            </tr>
+            <tr>
+              <td>Standard deviation</td>
+              <td>$\sqrt{\text{variance}}$</td>
+              <td>Same units as data; widely reported; sensitive to outliers.</td>
+            </tr>
+            <tr>
+              <td>Interquartile range (IQR)</td>
+              <td>$Q_3-Q_1$</td>
+              <td>Robust spread around the median; ignores extreme tails.</td>
+            </tr>
+            <tr>
+              <td>Median absolute deviation (MAD)</td>
+              <td>$\operatorname{median}\big(|x_i-\operatorname{median}(x)|\big)$</td>
+              <td>Very robust to outliers; often scaled (e.g. $1.4826\times\text{MAD}$) to match SD under normality.</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <p class="note"><strong>Rule of thumb.</strong> Use <em>mean & standard deviation</em> for roughly symmetric, light‑tailed data; use <em>median & IQR/MAD</em> when outliers/heavy tails are expected.</p>
+      <p class="note">
+        <strong>Location vs Dispersion:</strong> Always report at least one of each (e.g. mean &amp; SD or median &amp; IQR) to give both “where” and “how spread”.
+      </p>
     </section>
 
     <section class="card" id="uses">
@@ -152,229 +179,59 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Measure</th><th>Best for</th><th>Advantages</th><th>Limitations</th></tr>
+            <tr><th>Measure</th><th>Best suited for</th><th>Advantages</th><th>Limitations</th></tr>
           </thead>
           <tbody>
-            <tr><td>Mean</td><td>Symmetric distributions, additive errors</td><td>Efficient estimator; linear; supports algebra (CLT)</td><td>Non-robust to outliers; influenced by skew</td></tr>
-            <tr><td>Median</td><td>Skewed/heavy-tailed data, ordinal data</td><td>Robust; minimises absolute deviations</td><td>Less efficient under normality; not linear</td></tr>
-            <tr><td>Mode</td><td>Discrete/categorical; multimodality detection</td><td>Captures plurality</td><td>Unstable in continuous data without binning</td></tr>
-            <tr><td>Variance / SD</td><td>Measurement noise, ANOVA, regression</td><td>Algebra-friendly; decomposition laws</td><td>Variance in squared units; SD non-robust</td></tr>
-            <tr><td>IQR / MAD</td><td>Exploratory analysis; robust summaries</td><td>Insensitive to extremes</td><td>Less efficient for Gaussian data</td></tr>
-            <tr><td>CV</td><td>Comparing relative variability across scales</td><td>Unitless</td><td>Undefined if mean near 0</td></tr>
+            <tr>
+              <td>Mean</td>
+              <td>Symmetric, light‑tailed distributions; additive noise models.</td>
+              <td>Algebra-friendly; appears in CLT and many optimality results; easy to compute.</td>
+              <td>Non-robust to outliers; distorted by skewed data.</td>
+            </tr>
+            <tr>
+              <td>Median</td>
+              <td>Skewed or heavy‑tailed data; ordinal scales.</td>
+              <td>Robust to outliers; minimizes sum of absolute deviations.</td>
+              <td>Less efficient than mean when data are truly normal; harder to manipulate algebraically.</td>
+            </tr>
+            <tr>
+              <td>Mode</td>
+              <td>Discrete or categorical data; detecting multiple peaks.</td>
+              <td>Highlights “most common” category or value.</td>
+              <td>Can depend strongly on binning for continuous data; may be non-unique.</td>
+            </tr>
+            <tr>
+              <td>Variance / SD</td>
+              <td>Measurement error analysis, regression, ANOVA, forecasting.</td>
+              <td>Supports variance decompositions; central in Gaussian models.</td>
+              <td>Not robust to outliers; variance in squared units can be hard to interpret directly.</td>
+            </tr>
+            <tr>
+              <td>IQR</td>
+              <td>Exploratory data analysis; boxplots; robust summaries.</td>
+              <td>Insensitive to extreme tails; easy to visualize.</td>
+              <td>Ignores information in the tails; less efficient under normality.</td>
+            </tr>
+            <tr>
+              <td>MAD</td>
+              <td>Robust dispersion with strong outliers or non-Gaussian noise.</td>
+              <td>Very robust; often used in robust regression and outlier detection.</td>
+              <td>Needs scaling to be comparable to SD under normality.</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="card" id="proofs">
-      <h2>3) Recurrence Proofs (Mean & Variance)</h2>
-      <div class="grid cols-2">
-        <div>
-          <h3>Mean recurrence</h3>
-          <p>Let $m_n=\dfrac{1}{n}\sum_{i=1}^n x_i$ and $m_{n-1}=\dfrac{1}{n-1}\sum_{i=1}^{n-1} x_i$. Then</p>
-          <p>
-            $$\begin{aligned}
-            m_n &= \frac{1}{n}\Big(\sum_{i=1}^{n-1} x_i + x_n\Big)
-                = \frac{n-1}{n}\,m_{n-1} + \frac{x_n}{n} \\
-                &= m_{n-1} + \frac{x_n - m_{n-1}}{n}. \quad\square
-            \end{aligned}$$
-          </p>
-          <p class="note">Interpretation: move the old mean toward the new sample by a $1/n$ fraction of the error.</p>
-        </div>
-        <div>
-          <h3>Variance (Welford form)</h3>
-          <p>Define $M2_n = \sum_{i=1}^n (x_i - m_n)^2$ (the “sum of squares about the mean”). Then the updates</p>
-          <p>
-            $$\begin{aligned}
-            \delta &= x_n - m_{n-1},\\
-            m_n &= m_{n-1} + \frac{\delta}{n},\\
-            M2_n &= M2_{n-1} + \delta\,(x_n - m_n)
-            \end{aligned}$$
-          </p>
-          <p>follow from expanding $(x_i-m_n)^2$ and using $\sum(x_i-m_n)=0$. Finally, sample variance $s_n^2 = \dfrac{M2_n}{n-1}$ (for $n\ge2$). $\square$</p>
-          <p class="note">This avoids catastrophic cancellation present in $\sum x_i^2 - n m_n^2$ for large $n$.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="card" id="online">
-      <h2>4) Online Algorithms (Interactive)</h2>
-      <p class="muted">Type numbers, or stream random samples. The algorithm updates mean and variance in one pass without storing all data.</p>
-      <div>
-        <label class="pill" for="xInput">Add a number</label>
-        <div class="toolbar">
-          <input id="xInput" class="input mono" placeholder="e.g., 3.5" />
-          <button class="btn primary" id="addBtn">Add</button>
-          <button class="btn" id="resetBtn">Reset</button>
-        </div>
-        <div class="toolbar" style="margin-top:.6rem">
-          <button class="btn" id="streamBtn">Stream 100 N(0,1)</button>
-          <button class="btn" id="uniformBtn">Stream 100 U(0,1)</button>
-        </div>
-
-        <div class="table-wrap">
-          <table style="min-width:560px;margin-top:1rem">
-            <thead>
-              <tr>
-                <th>n</th>
-                <th>mean $m_n$</th>
-                <th>$M2_n$</th>
-                <th>variance (sample) $s_n^2$</th>
-                <th>std</th>
-              </tr>
-            </thead>
-            <tbody id="statsBody">
-              <tr><td colspan="5" class="muted">No data yet.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- CHART BLOCK DIRECTLY BELOW TABLE -->
-        <div class="chart-block">
-          <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
-          <div class="chart-label">
-            Chart shows running mean and &plusmn;1 SD band.
-          </div>
-        </div>
-
-        <h3>Implementation (JavaScript)</h3>
-<pre class="language-javascript"><code>class OnlineStats {
-  constructor(){ this.n=0; this.mean=0; this.M2=0; }
-  add(x){
-    this.n += 1;
-    const delta = x - this.mean;
-    this.mean += delta / this.n;              // m_n = m_{n-1} + (x - m_{n-1})/n
-    const delta2 = x - this.mean;
-    this.M2 += delta * delta2;                // M2_n = M2_{n-1} + (x - m_{n-1})(x - m_n)
-  }
-  sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
-  sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
-}</code></pre>
-        <p class="note"><strong>Why online?</strong> One pass, $\mathcal{O}(1)$ memory, and numerically stable — ideal for streams, embedded systems, and large data.</p>
-      </div>
-    </section>
-
-    <section class="card" id="extras">
-      <h2>5) Extras: Weighted & Robust variants</h2>
+    <section class="card" id="summary">
+      <h2>3) Summary Guidelines</h2>
       <ul>
-        <li><strong>Weighted online mean:</strong> $m \leftarrow m + \dfrac{w(x-m)}{W+w}$ with total weight $W$.</li>
-        <li><strong>Exponential moving average (EMA):</strong> $m \leftarrow (1-\alpha)m + \alpha x$ (forgetting factor $\alpha\in(0,1]$).</li>
-        <li><strong>Robust online spread:</strong> track running quantiles (P² algorithm) to estimate median/IQR without storing data.</li>
+        <li>For approximately symmetric, light‑tailed data: report <strong>mean ± standard deviation</strong>.</li>
+        <li>For clearly skewed or heavy‑tailed data: report <strong>median</strong> and a robust spread like <strong>IQR</strong> or <strong>MAD</strong>.</li>
+        <li>For rates or multiplicative growth: use <strong>geometric</strong> or <strong>harmonic</strong> means as appropriate.</li>
+        <li>In research or modeling, <strong>MSE</strong> is often minimized when choosing or evaluating estimators.</li>
       </ul>
     </section>
   </div>
-
-  <script>
-    // Theme toggle
-    const root = document.documentElement;
-    document.getElementById('themeToggle').addEventListener('click',()=>{
-      const cur = root.getAttribute('data-theme')||'light';
-      root.setAttribute('data-theme', cur==='light'?'dark':'light');
-      draw();
-    });
-
-    class OnlineStats {
-      constructor(){ this.n=0; this.mean=0; this.M2=0; }
-      add(x){
-        this.n += 1;
-        const delta = x - this.mean;
-        this.mean += delta / this.n;
-        const delta2 = x - this.mean;
-        this.M2 += delta * delta2;
-      }
-      sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
-      sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
-      reset(){ this.n=0; this.mean=0; this.M2=0; }
-    }
-
-    const stats = new OnlineStats();
-    const body = document.getElementById('statsBody');
-    const xInput = document.getElementById('xInput');
-    document.getElementById('addBtn').addEventListener('click', ()=>{
-      const x = parseFloat(xInput.value);
-      if(Number.isFinite(x)) { stats.add(x); xInput.value=''; renderTable(); draw(); }
-      xInput.focus();
-    });
-    document.getElementById('resetBtn').addEventListener('click', ()=>{ stats.reset(); renderTable(); draw(true); });
-
-    // Simple RNGs
-    function randn(){
-      let u=0, v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
-      return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-    }
-    function stream(n, fn){ for(let i=0;i<n;i++){ stats.add(fn()); } renderTable(); draw(); }
-    document.getElementById('streamBtn').addEventListener('click',()=>stream(100, randn));
-    document.getElementById('uniformBtn').addEventListener('click',()=>stream(100, ()=>Math.random()));
-
-    function renderTable(){
-      if(stats.n===0){ body.innerHTML = '<tr><td colspan="5" class="muted">No data yet.</td></tr>'; return; }
-      const v = stats.sampleVariance();
-      const s = stats.sampleStd();
-      let varianceDisplay = '<span class="muted" title="Requires at least 2 samples">N/A</span>';
-      let stdDisplay = '<span class="muted" title="Requires at least 2 samples">N/A</span>';
-      if(stats.n > 1) {
-        varianceDisplay = v.toFixed(6);
-        stdDisplay = s.toFixed(6);
-      }
-      body.innerHTML = `<tr>
-        <td>${stats.n}</td>
-        <td>${stats.mean.toFixed(6)}</td>
-        <td>${stats.M2.toFixed(6)}</td>
-        <td>${varianceDisplay}</td>
-        <td>${stdDisplay}</td>
-      </tr>`;
-    }
-
-    // Chart
-    const canvas = document.getElementById('chart');
-    const ctx = canvas.getContext('2d');
-    function draw(clearOnly){
-      const w=canvas.width, h=canvas.height;
-      ctx.clearRect(0,0,w,h);
-      const border = getComputedStyle(document.documentElement).getPropertyValue('--border');
-      const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted');
-      const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-700');
-
-      // axes
-      const left=44, bottom=h-30, right=w-10, top=12;
-      ctx.strokeStyle=border; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
-      ctx.font='11px Inter, system-ui, sans-serif'; ctx.fillStyle=muted; ctx.fillText('n', right-10, h-10);
-
-      if(clearOnly || stats.n===0) return;
-
-      // map n to x
-      const xmax = Math.max(10, stats.n);
-      const xscale = (right-left)/xmax;
-
-      // choose y scale around current mean +/- 3sd or [0,1]
-      const s = stats.sampleStd();
-      let yMin, yMax;
-      if(Number.isFinite(s) && s>0){ yMin = stats.mean - 3*s; yMax = stats.mean + 3*s; }
-      else { yMin = 0; yMax = 1; }
-      if(yMin===yMax){ yMin-=1; yMax+=1; }
-      const yscale = (bottom-top)/(yMax-yMin);
-      const Y = y=> bottom - (y - yMin)*yscale;
-
-      // mean line
-      ctx.strokeStyle = primary; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(left, Y(stats.mean)); ctx.lineTo(right, Y(stats.mean)); ctx.stroke();
-
-      // sd band
-      if(Number.isFinite(s)){
-        ctx.fillStyle = primary; ctx.globalAlpha = .12;
-        ctx.fillRect(left, Y(stats.mean+s), right-left, Math.max(2, Y(stats.mean-s)-Y(stats.mean+s)));
-        ctx.globalAlpha = 1;
-      }
-
-      // ticks
-      ctx.fillStyle=muted; ctx.fillText((yMax).toFixed(2), 6, Y(yMax)+4);
-      ctx.fillText((yMin).toFixed(2), 6, Y(yMin)+4);
-      if(Number.isFinite(s)) ctx.fillText('±1 SD', 6, Y(stats.mean)+4);
-    }
-
-    renderTable();
-    draw(true);
-  </script>
 </body>
 </html>
