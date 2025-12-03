@@ -153,7 +153,7 @@
             \]
           </p>
           <p>
-            follow from expanding \((x_i-m_n)^2\) and using \(\sum_{i=1}^n (x_i-m_n)=0\). The (unbiased) sample variance is
+            lead to the (unbiased) sample variance
             \[
               s_n^2 = \frac{M2_n}{n-1}, \quad n\ge2.
             \]
@@ -203,12 +203,12 @@
         <div class="chart-block">
           <canvas id="chart" width="760" height="260" aria-label="Running statistics chart"></canvas>
           <div class="chart-label">
-            The shaded band shows the running mean ± 1 standard deviation.
+            Line: running mean over time; shaded band: mean ± 1 standard deviation.
           </div>
         </div>
 
         <p class="note">
-          <strong>Why online?</strong> One pass, \(\mathcal{O}(1)\) memory, numerically stable —
+          <strong>Why online?</strong> One pass, \(\mathcal{O}(1)\) core statistics, numerically stable —
           ideal for data streams, embedded systems, or very large datasets.
         </p>
       </div>
@@ -238,17 +238,37 @@
 
     // Online stats (Welford)
     class OnlineStats {
-      constructor(){ this.n=0; this.mean=0; this.M2=0; }
+      constructor(){
+        this.n = 0;
+        this.mean = 0;
+        this.M2 = 0;
+        this.means = [];
+        this.stds  = [];
+        this.maxHistory = 1000;   // limit stored trajectory
+      }
       add(x){
         this.n += 1;
         const delta = x - this.mean;
         this.mean += delta / this.n;
         const delta2 = x - this.mean;
         this.M2 += delta * delta2;
+
+        const s = this.sampleStd();
+        this.means.push(this.mean);
+        this.stds.push(Number.isFinite(s) ? s : 0);
+
+        if (this.means.length > this.maxHistory){
+          this.means.shift();
+          this.stds.shift();
+        }
       }
       sampleVariance(){ return this.n>1 ? this.M2/(this.n-1) : NaN; }
       sampleStd(){ const v=this.sampleVariance(); return isNaN(v)?NaN:Math.sqrt(v); }
-      reset(){ this.n=0; this.mean=0; this.M2=0; }
+      reset(){
+        this.n=0; this.mean=0; this.M2=0;
+        this.means = [];
+        this.stds  = [];
+      }
     }
 
     const stats = new OnlineStats();
@@ -326,32 +346,59 @@
       ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
       ctx.font='11px Inter, system-ui, sans-serif'; ctx.fillStyle=muted; ctx.fillText('n', right-10, h-10);
 
-      if(clearOnly || stats.n===0) return;
+      if(clearOnly || stats.means.length===0) return;
 
-      const xmax = Math.max(10, stats.n);
+      const N = stats.means.length;
+      const xmax = Math.max(10, N);
       const xscale = (right-left)/xmax;
 
-      const s = stats.sampleStd();
-      let yMin, yMax;
-      if(Number.isFinite(s) && s>0){ yMin = stats.mean - 3*s; yMax = stats.mean + 3*s; }
-      else { yMin = 0; yMax = 1; }
+      // choose y scale from trajectory (mean ± 3 SD over time)
+      let yMin = Infinity, yMax = -Infinity;
+      for(let i=0;i<N;i++){
+        const m = stats.means[i];
+        const s = stats.stds[i];
+        const hi = m + 3*s;
+        const lo = m - 3*s;
+        if(hi > yMax) yMax = hi;
+        if(lo < yMin) yMin = lo;
+      }
+      if(!isFinite(yMin) || !isFinite(yMax)){
+        yMin = 0; yMax = 1;
+      }
       if(yMin===yMax){ yMin-=1; yMax+=1; }
       const yscale = (bottom-top)/(yMax-yMin);
-      const Y = y=> bottom - (y - yMin)*yscale;
+      const X = k => left + (k+1)*xscale;
+      const Y = y => bottom - (y - yMin)*yscale;
 
-      ctx.strokeStyle = primary; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(left, Y(stats.mean)); ctx.lineTo(right, Y(stats.mean)); ctx.stroke();
-
-      if(Number.isFinite(s)){
-        ctx.fillStyle = primary; ctx.globalAlpha = .12;
-        ctx.fillRect(left, Y(stats.mean+s), right-left, Math.max(2, Y(stats.mean-s)-Y(stats.mean+s)));
-        ctx.globalAlpha = 1;
+      // shaded band: mean ± 1 SD over time
+      ctx.fillStyle = primary;
+      ctx.globalAlpha = 0.12;
+      ctx.beginPath();
+      ctx.moveTo(X(0), Y(stats.means[0] + stats.stds[0]));
+      for(let i=1;i<N;i++){
+        ctx.lineTo(X(i), Y(stats.means[i] + stats.stds[i]));
       }
+      for(let i=N-1;i>=0;i--){
+        ctx.lineTo(X(i), Y(stats.means[i] - stats.stds[i]));
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
 
+      // running mean trajectory
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(X(0), Y(stats.means[0]));
+      for(let i=1;i<N;i++){
+        ctx.lineTo(X(i), Y(stats.means[i]));
+      }
+      ctx.stroke();
+
+      // y-axis labels
       ctx.fillStyle=muted;
-      ctx.fillText((yMax).toFixed(2), 6, Y(yMax)+4);
-      ctx.fillText((yMin).toFixed(2), 6, Y(yMin)+4);
-      if(Number.isFinite(s)) ctx.fillText('±1 SD', 6, Y(stats.mean)+4);
+      ctx.fillText(yMax.toFixed(2), 6, Y(yMax)+4);
+      ctx.fillText(yMin.toFixed(2), 6, Y(yMin)+4);
     }
 
     renderTable();
